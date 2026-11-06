@@ -2,236 +2,82 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Console di Controllo Basket PRO - Compact</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Basket PRO</title>
+    <!-- PeerJS Library -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Share+Tech+Mono&display=swap');
-
-        :root {
-            --bg-main: #070a10;
-            --bg-card: #0f172a;
-            --border-color: #1e293b;
-            --accent-home: #6366f1;
-            --accent-guest: #d946ef;
-            --accent-gold: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-green: #10b981;
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-        }
-
-        body {
-            margin: 0; padding: 10px; background-color: var(--bg-main);
-            font-family: 'Montserrat', sans-serif; color: var(--text-main);
-            display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;
-            max-width: 1300px; margin-left: auto; margin-right: auto;
-        }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--bg-card); padding: 8px 15px; border-radius: 8px;
-            border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        header h1 { margin: 0; font-size: 15px; font-weight: 900; color: var(--accent-gold); letter-spacing: 0.5px; }
-        
-        .header-actions { display: flex; gap: 6px; }
-
-        .dashboard-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-        }
-
-        .card {
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .card-title {
-            font-size: 11px; font-weight: 900; text-transform: uppercase; color: var(--text-muted);
-            letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .team-config-row { display: flex; gap: 5px; }
-        .team-input-group { display: flex; gap: 4px; flex: 1; }
-        .team-input-group input {
-            flex: 1; background: #030712; border: 1px solid var(--border-color);
-            color: #fff; padding: 4px 8px; border-radius: 4px; font-family: 'Montserrat', sans-serif;
-            font-weight: 700; font-size: 11px; outline: none;
-        }
-        .team-input-group input:focus { border-color: var(--accent-gold); }
-        .btn-apply-team {
-            background: var(--accent-gold); color: #030712; border: none; padding: 0 8px;
-            border-radius: 4px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 9px;
-        }
-
-        .control-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .btn {
-            background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.06);
-            padding: 6px 8px; border-radius: 4px; font-weight: 900; font-size: 10px; cursor: pointer;
-            transition: all 0.1s ease; text-transform: uppercase;
-        }
-        .btn:hover { filter: brightness(1.2); }
-        .btn:active { transform: scale(0.98); }
-
-        .btn-home { background: var(--accent-home); }
-        .btn-guest { background: var(--accent-guest); }
-        .btn-danger { background: var(--accent-red); }
-        .btn-warning { background: var(--accent-gold); color: #030712; }
-        .btn-time { background: #3b82f6; }
-
-        .btn-big-timer {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #000; font-size: 12px; font-weight: 900; padding: 10px;
-            border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;
-            letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .btn-big-timer:hover { filter: brightness(1.1); }
-
-        .global-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .pos-btn { background: #334155; font-size: 8px; padding: 5px 2px; text-align: center; }
-
-        .ads-card {
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .ads-controls-box { display: flex; gap: 8px; width: 100%; }
+        body { font-family: sans-serif; padding: 20px; text-align: center; background: #121212; color: #fff; }
+        .btn { padding: 12px 20px; margin: 8px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-action { background: #2ed573; color: white; }
+        .btn-score { background: #38bdf8; color: black; }
+        .btn-hide { background: #ff4757; color: white; }
+        #status { font-weight: bold; margin-top: 15px; font-size: 18px; }
+        input { padding: 10px; font-size: 14px; width: 90%; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 6px; text-align: center; }
+        .section { background: #1e1e1e; padding: 15px; margin: 15px 0; border-radius: 10px; }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>CONSOLE BASKET PRO</h1>
-        <div class="header-actions">
-            <button class="btn btn-warning" onclick="toggleScoreboardVisibility()">MOSTRA/NASCONDI</button>
-            <button class="btn btn-time" onclick="toggleTimeVisibility()">TEMPO</button>
-            <button class="btn btn-danger" onclick="sendCmd('rf')">AZZERA FALLI</button>
-        </div>
-    </header>
-
-    <div class="dashboard-grid">
-        
-        <!-- SQUADRA CASA -->
-        <div class="card" style="border-top: 3px solid var(--accent-home);">
-            <div class="card-title">Casa: <span id="lbl-title-h" style="color:var(--accent-home)">CASA</span></div>
-            <div class="team-config-row">
-                <div class="team-input-group">
-                    <input type="text" id="input-team-h" value="CASA" placeholder="Nome Squadra">
-                    <button class="btn-apply-team" onclick="updateTeamName('h')">OK</button>
-                </div>
-            </div>
-            <div class="control-row">
-                <button class="btn btn-home" onclick="sendCmd('h1')">+1 Pts</button>
-                <button class="btn btn-home" onclick="sendCmd('h2')">+2 Pts</button>
-                <button class="btn btn-home" onclick="sendCmd('h3')">+3 Pts</button>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
-                <button class="btn btn-home" onclick="sendCmd('hf')">+ Fallo</button>
-                <button class="btn btn-danger" onclick="sendCmd('h-f')">- Fallo</button>
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('h-1')">-1 Punto</button>
-            </div>
-        </div>
-
-        <!-- SQUADRA OSPITI -->
-        <div class="card" style="border-top: 3px solid var(--accent-guest);">
-            <div class="card-title">Ospiti: <span id="lbl-title-g" style="color:var(--accent-guest)">OSPITI</span></div>
-            <div class="team-config-row">
-                <div class="team-input-group">
-                    <input type="text" id="input-team-g" value="OSPITI" placeholder="Nome Squadra">
-                    <button class="btn-apply-team" onclick="updateTeamName('g')">OK</button>
-                </div>
-            </div>
-            <div class="control-row">
-                <button class="btn btn-guest" onclick="sendCmd('g1')">+1 Pts</button>
-                <button class="btn btn-guest" onclick="sendCmd('g2')">+2 Pts</button>
-                <button class="btn btn-guest" onclick="sendCmd('g3')">+3 Pts</button>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
-                <button class="btn btn-guest" onclick="sendCmd('gf')">+ Fallo</button>
-                <button class="btn btn-danger" onclick="sendCmd('g-f')">- Fallo</button>
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('g-1')">-1 Punto</button>
-            </div>
-        </div>
-
-        <!-- TEMPO E GARA -->
-        <div class="card">
-            <div class="card-title">Gestione Gara</div>
-            <button class="btn-big-timer" onclick="sendCmd('toggle')">
-                <span>▶ / ❚❚</span> AVVIA / STOP <small style="font-size: 9px; opacity: 0.8;">[SPAZIO]</small>
-            </button>
-            <div class="control-row">
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('reset_time')">RESET 10M</button>
-                <button class="btn btn-warning" onclick="sendCmd('period')">QUARTO</button>
-                <button class="btn btn-danger" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
-            </div>
-        </div>
-
+    <h2>Console Basket PRO</h2>
+    
+    <div class="section">
+        <p style="margin:0; font-size: 14px; color: #aaa;">Link fisso per OBS:</p>
+        <input type="text" id="overlayUrl" readonly>
+        <div id="status" style="color: #ffa500;">In attesa di connessione da OBS...</div>
     </div>
 
-    <!-- RIGA INFERIORE: SCHERMATE, POSIZIONE E SPONSOR -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        
-        <!-- SCHERMATE TV & POSIZIONE -->
-        <div class="card">
-            <div class="card-title">Schermate TV & Posizione Scorebug</div>
-            <div class="global-actions">
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_waiting')">In Attesa</button>
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_coming_back')">Tra Poco</button>
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_start')">Inizio</button>
-                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_end')">Fine</button>
-            </div>
-            <div class="pos-grid">
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-left')">SX Alto</button>
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-center')">Centro Alto</button>
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-right')">DX Alto</button>
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-left')">SX Basso</button>
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-center')">Centro Basso</button>
-                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-right')">DX Basso</button>
-            </div>
-        </div>
-
-        <!-- ROTAZIONE SPONSOR -->
-        <div class="card" style="justify-content: center;">
-            <div class="card-title">Rotazione Automatica Sponsor (1 - 24)[cite: 1]</div>
-            <div class="ads-controls-box">
-                <button class="btn btn-warning" style="flex: 2; padding: 10px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE[cite: 1]</button>
-                <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV[cite: 1]</button>
-            </div>
-        </div>
-
+    <div class="section">
+        <h3>Comandi Rapidi Punteggio</h3>
+        <button class="btn btn-score" onclick="sendCommand('h1')">Casa +1</button>
+        <button class="btn btn-score" onclick="sendCommand('h2')">Casa +2</button>
+        <button class="btn btn-score" onclick="sendCommand('h3')">Casa +3</button>
+        <br>
+        <button class="btn btn-score" onclick="sendCommand('g1')">Ospiti +1</button>
+        <button class="btn btn-score" onclick="sendCommand('g2')">Ospiti +2</button>
+        <button class="btn btn-score" onclick="sendCommand('g3')">Ospiti +3</button>
     </div>
 
+    <div class="section">
+        <h3>Gestione Controlli</h3>
+        <button class="btn btn-action" onclick="sendCommand('toggle')">Avvia / Ferma Tempo</button>
+        <button class="btn btn-action" onclick="sendCommand('period')">Cambia Quarto</button>
+        <button class="btn btn-hide" onclick="sendCommand('show_waiting')">Schermata Attesa</button>
+    </div>
+
+    <!-- Script di connessione PeerJS con ID Fisso -->
     <script>
-        let scoreboardVisible = true;
-        let timeVisible = true;
+        const roomId = 'basket-console-123'; 
+        
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        const overlayFullUrl = `${baseUrl}/grafica.html?room=${roomId}`;
+        
+        document.getElementById('overlayUrl').value = overlayFullUrl;
 
-        function toggleScoreboardVisibility() {
-            scoreboardVisible = !scoreboardVisible;
-            sendCmd(scoreboardVisible ? 'show_score|on' : 'show_score|off');
-        }
+        const peer = new Peer(roomId);
+        let activeConn = null;
 
-        function toggleTimeVisibility() {
-            timeVisible = !timeVisible;
-            sendCmd(timeVisible ? 'show_time|on' : 'show_time|off');
-        }
-
-        document.addEventListener('keydown', function(e) {
-            const activeElement = document.activeElement;
-            if (e.code === 'Space' && activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                sendCmd('toggle');
-            }
+        peer.on('open', (id) => {
+            console.log('Console pronta con ID fisso:', id);
         });
 
-        function sendCmd(cmd) {
-            localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
-        }
+        peer.on('connection', (conn) => {
+            activeConn = conn;
+            document.getElementById('status').innerText = '✅ Connesso all\'Overlay (OBS)!';
+            document.getElementById('status').style.color = '#2ed573';
 
-        function updateTeamName(type) {
-            const val = document.getElementById(`input-team-${type}`).value.trim();
-            document.getElementById(`lbl-title-${type}`).innerText = val.toUpperCase();
-            sendCmd(`${type === 'h' ? 'nh' : 'ng'}|` + val);
+            conn.on('close', () => {
+                document.getElementById('status').innerText = '❌ Overlay disconnesso';
+                document.getElementById('status').style.color = '#ff4757';
+                activeConn = null;
+            });
+        });
+
+        function sendCommand(cmd) {
+            if (activeConn && activeConn.open) {
+                activeConn.send({ cmd: cmd });
+            } else {
+                alert('Nessun overlay connesso ad OBS! Verifica che la fonte browser sia attiva.');
+            }
         }
     </script>
 </body>
