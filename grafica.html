@@ -33,7 +33,7 @@
             background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;
             display: flex; gap: 6px; font-family: sans-serif;
         }
-        #connect-box input { background: #030712; border: 1px solid #334155; color: #fff; padding: 5px; border-radius: 4px; font-weight: bold; width: 100px; text-transform: uppercase;}
+        #connect-box input { background: #030712; border: 1px solid #334155; color: #fff; padding: 5px; border-radius: 4px; font-weight: bold; width: 110px; text-transform: uppercase;}
         #connect-box button { background: #f59e0b; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
         .scaler-container {
@@ -298,8 +298,17 @@
         let timerThreeG = null;
         let scoreboardVisible = true;
 
-        // Gestione connessione remota PeerJS
-        const peer = new Peer();
+        // Configurazione STUN server pubblici per garantire la connessione cross-device
+        const peerOptions = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            }
+        };
+
+        const peer = new Peer(peerOptions);
 
         function connectToConsole() {
             const targetId = document.getElementById('target-id').value.trim().toUpperCase();
@@ -313,7 +322,6 @@
             });
         }
 
-        // Fallback locale
         window.addEventListener('storage', (e) => {
             if (e.key === 'basket_event' && e.newValue) {
                 handleCommand(JSON.parse(e.newValue).cmd);
