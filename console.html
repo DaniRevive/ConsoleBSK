@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Console di Controllo Basket PRO - Compact</title>
+    <title>Console di Controllo Basket PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Share+Tech+Mono&display=swap');
 
@@ -104,7 +104,7 @@
     <header>
         <h1>CONSOLE BASKET PRO</h1>
         <div class="header-actions">
-            <button class="btn btn-warning" onclick="toggleScoreboardVisibility()">MOSTRA/NASCONDI</button>
+            <button class="btn btn-warning" onclick="sendCmd('show_score|toggle')">MOSTRA/NASCONDI</button>
             <button class="btn btn-time" onclick="toggleTimeVisibility()">TEMPO</button>
             <button class="btn btn-danger" onclick="sendCmd('rf')">AZZERA FALLI</button>
         </div>
@@ -193,10 +193,10 @@
 
         <!-- ROTAZIONE SPONSOR -->
         <div class="card" style="justify-content: center;">
-            <div class="card-title">Rotazione Automatica Sponsor (1 - 24)[cite: 1]</div>
+            <div class="card-title">Rotazione Automatica Sponsor (1 - 24)</div>
             <div class="ads-controls-box">
-                <button class="btn btn-warning" style="flex: 2; padding: 10px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE[cite: 1]</button>
-                <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV[cite: 1]</button>
+                <button class="btn btn-warning" style="flex: 2; padding: 10px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE</button>
+                <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
             </div>
         </div>
 
@@ -206,10 +206,8 @@
         let scoreboardVisible = true;
         let timeVisible = true;
 
-        function toggleScoreboardVisibility() {
-            scoreboardVisible = !scoreboardVisible;
-            sendCmd(scoreboardVisible ? 'show_score|on' : 'show_score|off');
-        }
+        // Canale per la comunicazione inter-tab/browser rapida
+        const channel = new BroadcastChannel('basket_overlay_channel');
 
         function toggleTimeVisibility() {
             timeVisible = !timeVisible;
@@ -225,7 +223,11 @@
         });
 
         function sendCmd(cmd) {
-            localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
+            const data = { cmd: cmd, t: Date.now() };
+            // 1. Invio via BroadcastChannel
+            channel.postMessage(data);
+            // 2. Invio via localStorage per fallback
+            localStorage.setItem('basket_event', JSON.stringify(data));
         }
 
         function updateTeamName(type) {
