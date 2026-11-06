@@ -295,7 +295,7 @@
         };
 
         // ID fisso generato per la grafica OBS in modo che sia subito identificabile
-        const fixedObsId = "BSK-OBS-1973" + Math.floor(1000 + Math.random() * 9000);
+        const fixedObsId = "BSK-OBS-1973";
         const peer = new Peer(fixedObsId, peerOptions);
 
         peer.on('open', (id) => {
