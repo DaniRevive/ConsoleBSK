@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Console di Controllo Basket PRO - Cloud</title>
+    <title>Console di Controllo Basket PRO + Live Preview</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap');
@@ -24,7 +24,7 @@
             margin: 0; padding: 10px; background-color: var(--bg-main);
             font-family: 'Montserrat', sans-serif; color: var(--text-main);
             display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;
-            max-width: 1300px; margin-left: auto; margin-right: auto;
+            max-width: 1400px; margin-left: auto; margin-right: auto;
         }
 
         header {
@@ -34,10 +34,19 @@
         }
         header h1 { margin: 0; font-size: 15px; font-weight: 900; color: var(--accent-gold); }
 
-        .connection-status {
-            background: #030712; padding: 6px 12px; border-radius: 6px;
-            border: 1px solid var(--border-color); font-size: 11px; display: flex; align-items: center; gap: 8px;
+        .connection-box {
+            display: flex; align-items: center; gap: 8px; background: #030712;
+            padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);
         }
+        .connection-box input {
+            background: #0f172a; border: 1px solid var(--border-color); color: #fff;
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; width: 120px; text-transform: uppercase;
+        }
+        .connection-box button {
+            background: var(--accent-gold); color: #000; border: none; padding: 4px 10px;
+            border-radius: 4px; font-size: 10px; font-weight: 900; cursor: pointer; text-transform: uppercase;
+        }
+
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
         .status-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
 
@@ -91,17 +100,37 @@
         .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .pos-btn { background: #334155; font-size: 9px; padding: 8px 2px; text-align: center; }
 
-        .ads-controls-box { display: flex; gap: 8px; width: 100%; }
+        /* ANTEPRIMA GRAFICA MONITOR SOTTO LA CONSOLE */
+        .preview-section {
+            background: #000; border: 2px solid var(--border-color); border-radius: 8px;
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 5px;
+        }
+        .preview-title {
+            font-size: 11px; font-weight: 900; color: var(--accent-gold); text-transform: uppercase;
+            margin-bottom: 5px; letter-spacing: 1px; width: 100%; text-align: left; padding-left: 5px;
+        }
+        .preview-frame-wrapper {
+            width: 100%; height: 350px; border: none; border-radius: 4px; background: #070a10; overflow: hidden; position: relative;
+        }
+        .preview-frame-wrapper iframe {
+            width: 1920px; height: 1080px; border: none;
+            transform: scale(0.32); transform-origin: top left; pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>CONSOLE BASKET PRO</h1>
-        <div class="connection-status">
+        
+        <!-- INSERIMENTO ID DELL'OVERLAY/OBS DA QUI -->
+        <div class="connection-box">
             <div id="dot" class="status-dot"></div>
-            <span>ID Stanza OBS: <strong id="peer-id-display" style="color:var(--accent-gold);">Connessione...</strong></span>
+            <span style="font-size: 10px; color: #94a3b8;">ID GRAFICA OBS:</span>
+            <input type="text" id="target-id" placeholder="BSK-OBS-XXXX">
+            <button onclick="connectToOverlay()">CONNETTI</button>
         </div>
+
         <div style="display: flex; gap: 6px;">
             <button class="btn btn-warning" onclick="sendCmd('show_score|toggle')">MOSTRA/NASCONDI</button>
             <button class="btn btn-time" onclick="toggleTimeVisibility()">TEMPO</button>
@@ -163,7 +192,7 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div class="card">
             <div class="card-title">Schermate TV & Posizione Scorebug</div>
             <div class="global-actions">
@@ -184,10 +213,18 @@
 
         <div class="card" style="justify-content: center;">
             <div class="card-title">Rotazione Automatica Sponsor (1 - 24)</div>
-            <div class="ads-controls-box">
+            <div style="display: flex; gap: 8px;">
                 <button class="btn btn-warning" style="flex: 2; padding: 12px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE</button>
                 <button class="btn btn-danger" style="flex: 1; padding: 12px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MONITOR ANTEPRIMA GRAFICA LIVE -->
+    <div class="preview-section">
+        <div class="preview-title">📺 ANTEPRIMA GRAFICA IN TEMPO REALE</div>
+        <div class="preview-frame-wrapper">
+            <iframe id="preview-iframe" src="grafica.html"></iframe>
         </div>
     </div>
 
@@ -195,7 +232,6 @@
         let timeVisible = true;
         let activeConn = null;
 
-        // Configurazione STUN server pubblici per superare i blocchi di rete su dispositivi diversi
         const peerOptions = {
             config: {
                 iceServers: [
@@ -205,17 +241,16 @@
             }
         };
 
-        const roomId = "BSK-" + Math.floor(1000 + Math.random() * 9000);
-        const peer = new Peer(roomId, peerOptions);
+        const peer = new Peer(peerOptions);
 
-        peer.on('open', (id) => {
-            document.getElementById('peer-id-display').innerText = id;
-        });
-
-        peer.on('connection', (conn) => {
-            activeConn = conn;
-            document.getElementById('dot').classList.add('online');
-        });
+        function connectToOverlay() {
+            const targetId = document.getElementById('target-id').value.trim().toUpperCase();
+            if (!targetId) return;
+            activeConn = peer.connect(targetId);
+            activeConn.on('open', () => {
+                document.getElementById('dot').classList.add('online');
+            });
+        }
 
         function toggleTimeVisibility() {
             timeVisible = !timeVisible;
@@ -232,8 +267,14 @@
 
         function sendCmd(cmd) {
             const data = { cmd: cmd };
+            // Invio via PeerJS alla Grafica OBS remota
             if (activeConn && activeConn.open) {
                 activeConn.send(data);
+            }
+            // Aggiorna anche l'anteprima iframe locale incorporata
+            const iframe = document.getElementById('preview-iframe');
+            if (iframe && iframe.contentWindow && iframe.contentWindow.handleCommand) {
+                iframe.contentWindow.handleCommand(cmd);
             }
             localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
         }

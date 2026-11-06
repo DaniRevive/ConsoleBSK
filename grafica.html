@@ -28,14 +28,6 @@
             font-family: 'Montserrat', sans-serif; color: var(--text-main); 
         }
 
-        #connect-box {
-            position: fixed; top: 10px; left: 10px; z-index: 99999;
-            background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;
-            display: flex; gap: 6px; font-family: sans-serif;
-        }
-        #connect-box input { background: #030712; border: 1px solid #334155; color: #fff; padding: 5px; border-radius: 4px; font-weight: bold; width: 110px; text-transform: uppercase;}
-        #connect-box button { background: #f59e0b; border: none; padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-
         .scaler-container {
             transform: scale(0.9); 
             width: 1920px; height: 1080px; position: absolute; 
@@ -184,11 +176,6 @@
 </head>
 <body class="pos-bottom-center">
 
-    <div id="connect-box">
-        <input type="text" id="target-id" placeholder="ID STANZA">
-        <button onclick="connectToConsole()">CONNETTI</button>
-    </div>
-
     <div id="ad-graphic-container">
         <div class="ad-title-tag">SPONSOR UFFICIALE</div>
         <div class="ad-content-wrapper"><img id="ad-image-display" src="" alt="Pubblicità"></div>
@@ -298,7 +285,6 @@
         let timerThreeG = null;
         let scoreboardVisible = true;
 
-        // Configurazione STUN server pubblici per garantire la connessione cross-device
         const peerOptions = {
             config: {
                 iceServers: [
@@ -308,19 +294,19 @@
             }
         };
 
-        const peer = new Peer(peerOptions);
+        // ID fisso generato per la grafica OBS in modo che sia subito identificabile
+        const fixedObsId = "BSK-OBS-" + Math.floor(1000 + Math.random() * 9000);
+        const peer = new Peer(fixedObsId, peerOptions);
 
-        function connectToConsole() {
-            const targetId = document.getElementById('target-id').value.trim().toUpperCase();
-            if(!targetId) return;
-            const conn = peer.connect(targetId);
-            conn.on('open', () => {
-                document.getElementById('connect-box').style.display = 'none';
-            });
+        peer.on('open', (id) => {
+            console.log("ID Grafica OBS attivo:", id);
+        });
+
+        peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if (data && data.cmd) handleCommand(data.cmd);
             });
-        }
+        });
 
         window.addEventListener('storage', (e) => {
             if (e.key === 'basket_event' && e.newValue) {
