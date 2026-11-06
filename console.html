@@ -30,7 +30,7 @@
         header {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--bg-card); padding: 8px 15px; border-radius: 8px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;
         }
         header h1 { margin: 0; font-size: 15px; font-weight: 900; color: var(--accent-gold); }
 
@@ -42,6 +42,7 @@
         .status-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
 
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .card {
             background: var(--bg-card); border: 1px solid var(--border-color);
@@ -57,17 +58,17 @@
         .team-input-group { display: flex; gap: 4px; flex: 1; }
         .team-input-group input {
             flex: 1; background: #030712; border: 1px solid var(--border-color);
-            color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; outline: none;
+            color: #fff; padding: 6px 8px; border-radius: 4px; font-weight: 700; font-size: 12px; outline: none;
         }
         .btn-apply-team {
-            background: var(--accent-gold); color: #030712; border: none; padding: 0 8px;
-            border-radius: 4px; font-weight: 900; cursor: pointer; text-size: 9px; uppercase;
+            background: var(--accent-gold); color: #030712; border: none; padding: 0 10px;
+            border-radius: 4px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 10px;
         }
 
         .control-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .btn {
             background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.06);
-            padding: 6px 8px; border-radius: 4px; font-weight: 900; font-size: 10px; cursor: pointer;
+            padding: 8px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer;
             text-transform: uppercase;
         }
         .btn:hover { filter: brightness(1.2); }
@@ -81,14 +82,14 @@
 
         .btn-big-timer {
             background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #000; font-size: 12px; font-weight: 900; padding: 10px;
+            color: #000; font-size: 12px; font-weight: 900; padding: 12px;
             border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 6px;
         }
 
         .global-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .pos-btn { background: #334155; font-size: 8px; padding: 5px 2px; text-align: center; }
+        .pos-btn { background: #334155; font-size: 9px; padding: 8px 2px; text-align: center; }
 
         .ads-controls-box { display: flex; gap: 8px; width: 100%; }
     </style>
@@ -99,7 +100,7 @@
         <h1>CONSOLE BASKET PRO</h1>
         <div class="connection-status">
             <div id="dot" class="status-dot"></div>
-            <span>Stanza ID: <strong id="peer-id-display" style="color:var(--accent-gold);">Connessione...</strong></span>
+            <span>ID Stanza OBS: <strong id="peer-id-display" style="color:var(--accent-gold);">Connessione...</strong></span>
         </div>
         <div style="display: flex; gap: 6px;">
             <button class="btn btn-warning" onclick="sendCmd('show_score|toggle')">MOSTRA/NASCONDI</button>
@@ -162,7 +163,7 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
         <div class="card">
             <div class="card-title">Schermate TV & Posizione Scorebug</div>
             <div class="global-actions">
@@ -184,8 +185,8 @@
         <div class="card" style="justify-content: center;">
             <div class="card-title">Rotazione Automatica Sponsor (1 - 24)</div>
             <div class="ads-controls-box">
-                <button class="btn btn-warning" style="flex: 2; padding: 10px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE</button>
-                <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
+                <button class="btn btn-warning" style="flex: 2; padding: 12px; font-size: 11px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE</button>
+                <button class="btn btn-danger" style="flex: 1; padding: 12px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
             </div>
         </div>
     </div>
@@ -194,9 +195,18 @@
         let timeVisible = true;
         let activeConn = null;
 
-        // Inizializza rete PeerJS per la comunicazione remota
+        // Configurazione STUN server pubblici per superare i blocchi di rete su dispositivi diversi
+        const peerOptions = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            }
+        };
+
         const roomId = "BSK-" + Math.floor(1000 + Math.random() * 9000);
-        const peer = new Peer(roomId);
+        const peer = new Peer(roomId, peerOptions);
 
         peer.on('open', (id) => {
             document.getElementById('peer-id-display').innerText = id;
@@ -225,7 +235,6 @@
             if (activeConn && activeConn.open) {
                 activeConn.send(data);
             }
-            // Fallback locale se sulla stessa macchina
             localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
         }
 
