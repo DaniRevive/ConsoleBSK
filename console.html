@@ -2,9 +2,10 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Console di Controllo Basket PRO</title>
+    <title>Console di Controllo Basket PRO - Cloud</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Share+Tech+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap');
 
         :root {
             --bg-main: #070a10;
@@ -29,24 +30,26 @@
         header {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--bg-card); padding: 8px 15px; border-radius: 8px;
-            border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
         }
-        header h1 { margin: 0; font-size: 15px; font-weight: 900; color: var(--accent-gold); letter-spacing: 0.5px; }
-        
-        .header-actions { display: flex; gap: 6px; }
+        header h1 { margin: 0; font-size: 15px; font-weight: 900; color: var(--accent-gold); }
 
-        .dashboard-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+        .connection-status {
+            background: #030712; padding: 6px 12px; border-radius: 6px;
+            border: 1px solid var(--border-color); font-size: 11px; display: flex; align-items: center; gap: 8px;
         }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+        .status-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
         .card {
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         .card-title {
             font-size: 11px; font-weight: 900; text-transform: uppercase; color: var(--text-muted);
-            letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 4px;
             display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -54,20 +57,18 @@
         .team-input-group { display: flex; gap: 4px; flex: 1; }
         .team-input-group input {
             flex: 1; background: #030712; border: 1px solid var(--border-color);
-            color: #fff; padding: 4px 8px; border-radius: 4px; font-family: 'Montserrat', sans-serif;
-            font-weight: 700; font-size: 11px; outline: none;
+            color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; outline: none;
         }
-        .team-input-group input:focus { border-color: var(--accent-gold); }
         .btn-apply-team {
             background: var(--accent-gold); color: #030712; border: none; padding: 0 8px;
-            border-radius: 4px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 9px;
+            border-radius: 4px; font-weight: 900; cursor: pointer; text-size: 9px; uppercase;
         }
 
         .control-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .btn {
             background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.06);
             padding: 6px 8px; border-radius: 4px; font-weight: 900; font-size: 10px; cursor: pointer;
-            transition: all 0.1s ease; text-transform: uppercase;
+            text-transform: uppercase;
         }
         .btn:hover { filter: brightness(1.2); }
         .btn:active { transform: scale(0.98); }
@@ -82,20 +83,13 @@
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #000; font-size: 12px; font-weight: 900; padding: 10px;
             border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;
-            letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
             display: flex; align-items: center; justify-content: center; gap: 6px;
         }
-        .btn-big-timer:hover { filter: brightness(1.1); }
 
         .global-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .pos-btn { background: #334155; font-size: 8px; padding: 5px 2px; text-align: center; }
 
-        .ads-card {
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
         .ads-controls-box { display: flex; gap: 8px; width: 100%; }
     </style>
 </head>
@@ -103,7 +97,11 @@
 
     <header>
         <h1>CONSOLE BASKET PRO</h1>
-        <div class="header-actions">
+        <div class="connection-status">
+            <div id="dot" class="status-dot"></div>
+            <span>Stanza ID: <strong id="peer-id-display" style="color:var(--accent-gold);">Connessione...</strong></span>
+        </div>
+        <div style="display: flex; gap: 6px;">
             <button class="btn btn-warning" onclick="sendCmd('show_score|toggle')">MOSTRA/NASCONDI</button>
             <button class="btn btn-time" onclick="toggleTimeVisibility()">TEMPO</button>
             <button class="btn btn-danger" onclick="sendCmd('rf')">AZZERA FALLI</button>
@@ -111,8 +109,6 @@
     </header>
 
     <div class="dashboard-grid">
-        
-        <!-- SQUADRA CASA -->
         <div class="card" style="border-top: 3px solid var(--accent-home);">
             <div class="card-title">Casa: <span id="lbl-title-h" style="color:var(--accent-home)">CASA</span></div>
             <div class="team-config-row">
@@ -133,7 +129,6 @@
             </div>
         </div>
 
-        <!-- SQUADRA OSPITI -->
         <div class="card" style="border-top: 3px solid var(--accent-guest);">
             <div class="card-title">Ospiti: <span id="lbl-title-g" style="color:var(--accent-guest)">OSPITI</span></div>
             <div class="team-config-row">
@@ -154,7 +149,6 @@
             </div>
         </div>
 
-        <!-- TEMPO E GARA -->
         <div class="card">
             <div class="card-title">Gestione Gara</div>
             <button class="btn-big-timer" onclick="sendCmd('toggle')">
@@ -166,13 +160,9 @@
                 <button class="btn btn-danger" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
             </div>
         </div>
-
     </div>
 
-    <!-- RIGA INFERIORE: SCHERMATE, POSIZIONE E SPONSOR -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        
-        <!-- SCHERMATE TV & POSIZIONE -->
         <div class="card">
             <div class="card-title">Schermate TV & Posizione Scorebug</div>
             <div class="global-actions">
@@ -191,7 +181,6 @@
             </div>
         </div>
 
-        <!-- ROTAZIONE SPONSOR -->
         <div class="card" style="justify-content: center;">
             <div class="card-title">Rotazione Automatica Sponsor (1 - 24)</div>
             <div class="ads-controls-box">
@@ -199,15 +188,24 @@
                 <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 11px;" onclick="sendCmd('hide_ad')">CHIUDI ADV</button>
             </div>
         </div>
-
     </div>
 
     <script>
-        let scoreboardVisible = true;
         let timeVisible = true;
+        let activeConn = null;
 
-        // Canale per la comunicazione inter-tab/browser rapida
-        const channel = new BroadcastChannel('basket_overlay_channel');
+        // Inizializza rete PeerJS per la comunicazione remota
+        const roomId = "BSK-" + Math.floor(1000 + Math.random() * 9000);
+        const peer = new Peer(roomId);
+
+        peer.on('open', (id) => {
+            document.getElementById('peer-id-display').innerText = id;
+        });
+
+        peer.on('connection', (conn) => {
+            activeConn = conn;
+            document.getElementById('dot').classList.add('online');
+        });
 
         function toggleTimeVisibility() {
             timeVisible = !timeVisible;
@@ -223,11 +221,12 @@
         });
 
         function sendCmd(cmd) {
-            const data = { cmd: cmd, t: Date.now() };
-            // 1. Invio via BroadcastChannel
-            channel.postMessage(data);
-            // 2. Invio via localStorage per fallback
-            localStorage.setItem('basket_event', JSON.stringify(data));
+            const data = { cmd: cmd };
+            if (activeConn && activeConn.open) {
+                activeConn.send(data);
+            }
+            // Fallback locale se sulla stessa macchina
+            localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
         }
 
         function updateTeamName(type) {
