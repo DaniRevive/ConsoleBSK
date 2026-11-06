@@ -294,17 +294,21 @@
             }
         };
 
-        // ID fisso generato per la grafica OBS in modo che sia subito identificabile
-        const fixedObsId = "BSK-OBS-1973";
+        // ID fisso pulito per OBS
+        const fixedObsId = "BSK-STREAM-OBS-2026";
         const peer = new Peer(fixedObsId, peerOptions);
 
         peer.on('open', (id) => {
-            console.log("ID Grafica OBS attivo:", id);
+            console.log("OBS Grafica pronta con ID fisso:", id);
         });
 
+        // Gestione pulita della connessione per evitare doppi comandi
         peer.on('connection', (conn) => {
+            conn.off('data');
             conn.on('data', (data) => {
-                if (data && data.cmd) handleCommand(data.cmd);
+                if (data && data.cmd) {
+                    handleCommand(data.cmd);
+                }
             });
         });
 

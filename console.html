@@ -40,7 +40,7 @@
         }
         .connection-box input {
             background: #0f172a; border: 1px solid var(--border-color); color: #fff;
-            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; width: 120px; text-transform: uppercase;
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; width: 150px; text-transform: uppercase;
         }
         .connection-box button {
             background: var(--accent-gold); color: #000; border: none; padding: 4px 10px;
@@ -100,7 +100,6 @@
         .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .pos-btn { background: #334155; font-size: 9px; padding: 8px 2px; text-align: center; }
 
-        /* ANTEPRIMA GRAFICA MONITOR SOTTO LA CONSOLE */
         .preview-section {
             background: #000; border: 2px solid var(--border-color); border-radius: 8px;
             overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 5px;
@@ -123,11 +122,10 @@
     <header>
         <h1>CONSOLE BASKET PRO</h1>
         
-        <!-- INSERIMENTO ID DELL'OVERLAY/OBS DA QUI -->
         <div class="connection-box">
             <div id="dot" class="status-dot"></div>
-            <span style="font-size: 10px; color: #94a3b8;">ID GRAFICA OBS:</span>
-            <input type="text" id="target-id" placeholder="BSK-OBS-XXXX">
+            <span style="font-size: 10px; color: #94a3b8;">ID OBS:</span>
+            <input type="text" id="target-id" value="BSK-STREAM-OBS-2026" placeholder="ID STANZA">
             <button onclick="connectToOverlay()">CONNETTI</button>
         </div>
 
@@ -220,7 +218,6 @@
         </div>
     </div>
 
-    <!-- MONITOR ANTEPRIMA GRAFICA LIVE -->
     <div class="preview-section">
         <div class="preview-title">📺 ANTEPRIMA GRAFICA IN TEMPO REALE</div>
         <div class="preview-frame-wrapper">
@@ -246,11 +243,26 @@
         function connectToOverlay() {
             const targetId = document.getElementById('target-id').value.trim().toUpperCase();
             if (!targetId) return;
+            
+            if (activeConn) {
+                activeConn.close();
+            }
+
             activeConn = peer.connect(targetId);
+            
             activeConn.on('open', () => {
                 document.getElementById('dot').classList.add('online');
+                console.log("Connesso all'overlay OBS!");
+            });
+
+            activeConn.on('error', (err) => {
+                console.error("Errore di connessione:", err);
+                document.getElementById('dot').classList.remove('online');
             });
         }
+
+        // Connessione automatica all'avvio con l'ID preimpostato
+        setTimeout(connectToOverlay, 1000);
 
         function toggleTimeVisibility() {
             timeVisible = !timeVisible;
@@ -267,15 +279,18 @@
 
         function sendCmd(cmd) {
             const data = { cmd: cmd };
-            // Invio via PeerJS alla Grafica OBS remota
+            
+            // Invia il comando via cloud (PeerJS) all'overlay su OBS
             if (activeConn && activeConn.open) {
                 activeConn.send(data);
             }
-            // Aggiorna anche l'anteprima iframe locale incorporata
+            
+            // Aggiorna l'anteprima locale nello schermo della console
             const iframe = document.getElementById('preview-iframe');
             if (iframe && iframe.contentWindow && iframe.contentWindow.handleCommand) {
                 iframe.contentWindow.handleCommand(cmd);
             }
+            
             localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
         }
 
