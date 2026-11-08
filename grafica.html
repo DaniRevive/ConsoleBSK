@@ -302,20 +302,13 @@
             console.log("OBS Grafica pronta con ID fisso:", id);
         });
 
-        // Gestione pulita della connessione per evitare doppi comandi
+        // Gestione pulita della connessione per evitare doppi comandi ed eventi fantasma
         peer.on('connection', (conn) => {
-            conn.off('data');
             conn.on('data', (data) => {
                 if (data && data.cmd) {
                     handleCommand(data.cmd);
                 }
             });
-        });
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'basket_event' && e.newValue) {
-                handleCommand(JSON.parse(e.newValue).cmd);
-            }
         });
 
         function formatTeamName(fullName) {
