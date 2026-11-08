@@ -280,12 +280,10 @@
         function sendCmd(cmd) {
             const data = { cmd: cmd };
             
-            // Invia il comando via cloud (PeerJS) all'overlay su OBS / altro dispositivo
             if (activeConn && activeConn.open) {
                 activeConn.send(data);
             }
             
-            // Aggiorna SOLO l'anteprima locale nella console
             const iframe = document.getElementById('preview-iframe');
             if (iframe && iframe.contentWindow && iframe.contentWindow.handleCommand) {
                 iframe.contentWindow.handleCommand(cmd);
