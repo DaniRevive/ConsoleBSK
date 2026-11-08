@@ -87,8 +87,7 @@
         .team-name-h { font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #ffffff; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
         
         /* Gestione pulita loghi: se non caricato o vuoto, rimane nascosto senza mostrare icone di errore */
-        img { display: none; }
-        img[src]:not([src=""]) { display: block !important; }
+        .team-logo-h, .team-logo-g, .match-row img { display: inline-block; width: 52px; height: 52px; object-fit: contain; }
         
         .team-logo-h { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); }
 
