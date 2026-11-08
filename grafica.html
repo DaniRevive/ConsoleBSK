@@ -178,7 +178,7 @@
 
     <div id="ad-graphic-container">
         <div class="ad-title-tag">SPONSOR UFFICIALE</div>
-        <div class="ad-content-wrapper"><img id="ad-image-display" src="" alt="Pubblicità"></div>
+        <div class="ad-content-wrapper"><img id="ad-image-display" src="" alt="Pubblicità" onerror="this.style.display='none'"></div>
     </div>
 
     <div id="gate-waiting" class="full-screen-gate">
@@ -204,9 +204,9 @@
         <div class="gate-main-layout">
             <h1 class="gate-title-main" style="color:var(--foul-color);">INIZIO PARTITA</h1>
             <div class="match-row">
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="st-lh"><div id="st-nh" class="gate-team-name"></div></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="st-lh" onerror="this.style.display='none'"><div id="st-nh" class="gate-team-name"></div></div>
                 <div style="font-size:80px; font-weight:900; color:#64748b;">VS</div>
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="st-lg"><div id="st-ng" class="gate-team-name"></div></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="st-lg" onerror="this.style.display='none'"><div id="st-ng" class="gate-team-name"></div></div>
             </div>
         </div>
     </div>
@@ -216,9 +216,9 @@
         <div class="gate-main-layout">
             <h1 class="gate-title-main" style="color:var(--foul-color);">RISULTATO FINALE</h1>
             <div class="match-row">
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="en-lh"><div id="en-nh" class="gate-team-name" style="font-size:32px; color:#94a3b8;"></div><h2 id="en-sh" class="gate-score-val">0</h2></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="en-lh" onerror="this.style.display='none'"><div id="en-nh" class="gate-team-name" style="font-size:32px; color:#94a3b8;"></div><h2 id="en-sh" class="gate-score-val">0</h2></div>
                 <div style="font-size:100px; color:#64748b;">-</div>
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="en-lg"><div id="en-ng" class="gate-team-name" style="font-size:32px; color:#94a3b8;"></div><h2 id="en-sg" class="gate-score-val">0</h2></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="en-lg" onerror="this.style.display='none'"><div id="en-ng" class="gate-team-name" style="font-size:32px; color:#94a3b8;"></div><h2 id="en-sg" class="gate-score-val">0</h2></div>
             </div>
         </div>
     </div>
@@ -228,9 +228,9 @@
         <div class="gate-main-layout">
             <h1 id="sw-text" style="font-size:85px; color:var(--foul-color); font-weight:900; margin-bottom:25px;"></h1>
             <div class="match-row">
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="sw-lh"><div id="sw-nh" class="gate-team-name"></div></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="sw-lh" onerror="this.style.display='none'"><div id="sw-nh" class="gate-team-name"></div></div>
                 <div style="font-size:55px; color:#64748b;">VS</div>
-                <div style="display:flex; flex-direction:column; align-items:center;"><img id="sw-lg"><div id="sw-ng" class="gate-team-name"></div></div>
+                <div style="display:flex; flex-direction:column; align-items:center;"><img id="sw-lg" onerror="this.style.display='none'"><div id="sw-ng" class="gate-team-name"></div></div>
             </div>
         </div>
     </div>
@@ -241,7 +241,7 @@
                 <div id="bonus-lbl-home" class="bonus-badge-home">BONUS</div>
                 <div class="team-box-home-inner">
                     <span id="nh" class="team-name-h">CASA</span>
-                    <img id="lh" class="team-logo-h" src="" onerror="this.style.display='none'">
+                    <img id="lh" class="team-logo-h" src="loghi/CASA.png" onerror="this.style.display='none'">
                 </div>
             </div>
 
@@ -254,7 +254,7 @@
             <div class="team-box-guest" id="team-box-guest-el">
                 <div id="bonus-lbl-guest" class="bonus-badge-guest">BONUS</div>
                 <div class="team-box-guest-inner">
-                    <img id="lg" class="team-logo-g" src="" onerror="this.style.display='none'">
+                    <img id="lg" class="team-logo-g" src="loghi/OSPITI.png" onerror="this.style.display='none'">
                     <span id="ng" class="team-name-g">OSPITI</span>
                 </div>
             </div>
@@ -319,6 +319,13 @@
                 return `${words[0].substring(0, 1).toUpperCase()}. ${words.slice(1).join(" ").toUpperCase()}`;
             }
             return cleanName.toUpperCase();
+        }
+
+        function setLogoSrc(imgEl, name) {
+            if (!imgEl) return;
+            const cleanName = name.trim().toUpperCase();
+            imgEl.style.display = 'block';
+            imgEl.src = logoPath + cleanName + ext;
         }
 
         function handleCommand(msg) {
@@ -393,17 +400,13 @@
                 currentHomeFull = val.toUpperCase(); 
                 const displayName = formatTeamName(val);
                 document.getElementById('nh').innerText = displayName;
-                const imgEl = document.getElementById('lh');
-                imgEl.style.display = 'block';
-                imgEl.src = logoPath + val.toUpperCase() + ext;
+                setLogoSrc(document.getElementById('lh'), val);
             }
             if (cmd === 'ng') {
                 currentGuestFull = val.toUpperCase(); 
                 const displayName = formatTeamName(val);
                 document.getElementById('ng').innerText = displayName;
-                const imgEl = document.getElementById('lg');
-                imgEl.style.display = 'block';
-                imgEl.src = logoPath + val.toUpperCase() + ext;
+                setLogoSrc(document.getElementById('lg'), val);
             }
             updateUI();
         }
@@ -432,6 +435,7 @@
         function showAndRotateAd() {
             const adContainer = document.getElementById('ad-graphic-container');
             const adImage = document.getElementById('ad-image-display');
+            adImage.style.display = 'block';
             adImage.src = `${logoPath}${currentAdIndex}${ext}`;
             adContainer.classList.add('active');
             currentAdIndex = (currentAdIndex % totalAds) + 1;
@@ -441,12 +445,18 @@
             const gate = document.getElementById(id);
             const lh = document.getElementById('lh').src, lg = document.getElementById('lg').src;
             if (id === 'gate-start') {
-                document.getElementById('st-lh').src = lh; document.getElementById('st-lg').src = lg;
+                const stLh = document.getElementById('st-lh');
+                const stLg = document.getElementById('st-lg');
+                stLh.style.display = 'block'; stLh.src = lh;
+                stLg.style.display = 'block'; stLg.src = lg;
                 document.getElementById('st-nh').innerText = currentHomeFull; 
                 document.getElementById('st-ng').innerText = currentGuestFull;
             }
             if (result) {
-                document.getElementById('en-lh').src = lh; document.getElementById('en-lg').src = lg;
+                const enLh = document.getElementById('en-lh');
+                const enLg = document.getElementById('en-lg');
+                enLh.style.display = 'block'; enLh.src = lh;
+                enLg.style.display = 'block'; enLg.src = lg;
                 document.getElementById('en-nh').innerText = currentHomeFull; 
                 document.getElementById('en-ng').innerText = currentGuestFull;
                 document.getElementById('en-sh').innerText = sH; document.getElementById('en-sg').innerText = sG;
@@ -455,8 +465,10 @@
         }
 
         function showTransition() {
-            document.getElementById('sw-lh').src = document.getElementById('lh').src;
-            document.getElementById('sw-lg').src = document.getElementById('lg').src;
+            const swLh = document.getElementById('sw-lh');
+            const swLg = document.getElementById('sw-lg');
+            swLh.style.display = 'block'; swLh.src = document.getElementById('lh').src;
+            swLg.style.display = 'block'; swLg.src = document.getElementById('lg').src;
             document.getElementById('sw-nh').innerText = currentHomeFull;
             document.getElementById('sw-ng').innerText = currentGuestFull;
             document.getElementById('sw-text').innerText = pFull[pIdx];
