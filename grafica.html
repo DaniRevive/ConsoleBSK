@@ -86,8 +86,9 @@
         .team-box-home-inner { transform: skewX(15deg); display: flex; align-items: center; gap: 16px; }
         .team-name-h { font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #ffffff; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
         
+        /* Gestione pulita loghi: se non caricato o vuoto, rimane nascosto senza mostrare icone di errore */
         img { display: none; }
-        img.loaded { display: block !important; }
+        img[src]:not([src=""]) { display: block !important; }
         
         .team-logo-h { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); }
 
@@ -288,7 +289,6 @@
         let timerThreeG = null;
         let scoreboardVisible = true;
 
-        // BroadcastChannel locale per ricezione istantanea senza server
         const broadcastChannel = new BroadcastChannel('basket_overlay_channel');
         broadcastChannel.onmessage = (event) => {
             if (event.data && event.data.cmd) {
@@ -296,7 +296,6 @@
             }
         };
 
-        // LocalStorage fallback (per OBS Browser Source sullo stesso PC)
         window.addEventListener('storage', (e) => {
             if (e.key === 'basket_cmd' && e.newValue) {
                 const parts = e.newValue.split('|');
@@ -316,10 +315,6 @@
         const fixedObsId = "BSK-STREAM-OBS-2026";
         const peer = new Peer(fixedObsId, peerOptions);
 
-        peer.on('open', (id) => {
-            console.log("OBS Grafica pronta con ID fisso:", id);
-        });
-
         peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if (data && data.cmd) {
@@ -338,94 +333,63 @@
             return cleanName.toUpperCase();
         }
 
-        // CARICAMENTO SQUADRE INVISIBILE
-        function loadLogoSmart(imgEl, nameRaw) {
+        // CARICAMENTO DIRETTO ROBUSTO CON FALLBACK IN SEQUENZA
+        function loadLogoDirect(imgEl, nameRaw) {
             if (!imgEl) return;
-            imgEl.classList.remove('loaded');
-            imgEl.src = '';
-
-            if (!nameRaw) return;
+            if (!nameRaw) {
+                imgEl.src = '';
+                return;
+            }
             const name = nameRaw.trim();
-            if (!name) return;
+            if (!name) {
+                imgEl.src = '';
+                return;
+            }
 
             const formats = [
+                name + '.png',
                 name.toUpperCase() + '.png',
                 name.toLowerCase() + '.png',
-                name + '.png',
+                name + '.jpg',
                 name.toUpperCase() + '.jpg',
                 name.toLowerCase() + '.jpg',
-                name + '.jpg',
-                name.toUpperCase() + '.jpeg',
-                name.toLowerCase() + '.jpeg',
-                name.toUpperCase() + '.webp',
-                name.toLowerCase() + '.webp'
+                name + '.jpeg',
+                name + '.webp'
             ];
 
-            let attemptIndex = 0;
-
-            function testNextCandidate() {
-                if (attemptIndex >= formats.length) {
-                    imgEl.classList.remove('loaded');
-                    imgEl.src = '';
-                    return;
+            let index = 0;
+            imgEl.onerror = function() {
+                index++;
+                if (index < formats.length) {
+                    imgEl.src = logoPath + formats[index];
+                } else {
+                    imgEl.src = ''; // Nessuna immagine trovata, nasconde l'elemento
                 }
-
-                const candidatePath = logoPath + formats[attemptIndex];
-                attemptIndex++;
-
-                const tempImage = new Image();
-                tempImage.onload = function() {
-                    imgEl.src = candidatePath;
-                    imgEl.classList.add('loaded');
-                };
-                tempImage.onerror = function() {
-                    testNextCandidate();
-                };
-                tempImage.src = candidatePath;
-            }
-
-            testNextCandidate();
+            };
+            imgEl.src = logoPath + formats[index];
         }
 
-        // CARICAMENTO SPONSOR DEDICATO (1.png, 1.jpg, 2.png, ecc.)
-        function loadSponsorSmart(imgEl, index) {
+        // CARICAMENTO SPONSOR DIRETTO (1.png, 2.png...)
+        function loadSponsorDirect(imgEl, indexNum) {
             if (!imgEl) return;
-            imgEl.classList.remove('loaded');
-            imgEl.src = '';
-
             const formats = [
-                index + '.png',
-                index + '.jpg',
-                index + '.jpeg',
-                index + '.webp',
-                'sponsor' + index + '.png',
-                'sponsor' + index + '.jpg'
+                indexNum + '.png',
+                indexNum + '.jpg',
+                indexNum + '.jpeg',
+                indexNum + '.webp',
+                'sponsor' + indexNum + '.png'
             ];
 
-            let attemptIndex = 0;
-
-            function testNextSponsor() {
-                if (attemptIndex >= formats.length) {
-                    imgEl.classList.remove('loaded');
+            let index = 0;
+            imgEl.onerror = function() {
+                index++;
+                if (index < formats.length) {
+                    imgEl.src = logoPath + formats[index];
+                } else {
                     imgEl.src = '';
-                    return;
                 }
-
-                const candidatePath = logoPath + formats[attemptIndex];
-                attemptIndex++;
-
-                const tempImage = new Image();
-                tempImage.onload = function() {
-                    imgEl.src = candidatePath;
-                    imgEl.classList.add('loaded');
-                };
-                tempImage.onerror = function() {
-                    testNextSponsor();
-                };
-                tempImage.src = candidatePath;
-            }
-
-            testNextSponsor();
+            };
+            imgEl.src = logoPath + formats[index];
         }
 
         function handleCommand(msg) {
@@ -500,13 +464,13 @@
                 currentHomeFull = val.toUpperCase(); 
                 const displayName = formatTeamName(val);
                 document.getElementById('nh').innerText = displayName;
-                loadLogoSmart(document.getElementById('lh'), val);
+                loadLogoDirect(document.getElementById('lh'), val);
             }
             if (cmd === 'ng') {
                 currentGuestFull = val.toUpperCase(); 
                 const displayName = formatTeamName(val);
                 document.getElementById('ng').innerText = displayName;
-                loadLogoSmart(document.getElementById('lg'), val);
+                loadLogoDirect(document.getElementById('lg'), val);
             }
             updateUI();
         }
@@ -535,7 +499,7 @@
         function showAndRotateAd() {
             const adContainer = document.getElementById('ad-graphic-container');
             const adImage = document.getElementById('ad-image-display');
-            loadSponsorSmart(adImage, currentAdIndex);
+            loadSponsorDirect(adImage, currentAdIndex);
             adContainer.classList.add('active');
             currentAdIndex = (currentAdIndex % totalAds) + 1;
         }
@@ -546,16 +510,16 @@
             if (id === 'gate-start') {
                 const stLh = document.getElementById('st-lh');
                 const stLg = document.getElementById('st-lg');
-                if (lh) { stLh.src = lh; stLh.classList.add('loaded'); } else stLh.classList.remove('loaded');
-                if (lg) { stLg.src = lg; stLg.classList.add('loaded'); } else stLg.classList.remove('loaded');
+                stLh.src = lh;
+                stLg.src = lg;
                 document.getElementById('st-nh').innerText = currentHomeFull; 
                 document.getElementById('st-ng').innerText = currentGuestFull;
             }
             if (result) {
                 const enLh = document.getElementById('en-lh');
                 const enLg = document.getElementById('en-lg');
-                if (lh) { enLh.src = lh; enLh.classList.add('loaded'); } else enLh.classList.remove('loaded');
-                if (lg) { enLg.src = lg; enLg.classList.add('loaded'); } else enLg.classList.remove('loaded');
+                enLh.src = lh;
+                enLg.src = lg;
                 document.getElementById('en-nh').innerText = currentHomeFull; 
                 document.getElementById('en-ng').innerText = currentGuestFull;
                 document.getElementById('en-sh').innerText = sH; document.getElementById('en-sg').innerText = sG;
@@ -566,10 +530,8 @@
         function showTransition() {
             const swLh = document.getElementById('sw-lh');
             const swLg = document.getElementById('sw-lg');
-            const lh = document.getElementById('lh').src;
-            const lg = document.getElementById('lg').src;
-            if (lh) { swLh.src = lh; swLh.classList.add('loaded'); } else swLh.classList.remove('loaded');
-            if (lg) { swLg.src = lg; swLg.classList.add('loaded'); } else swLg.classList.remove('loaded');
+            swLh.src = document.getElementById('lh').src;
+            swLg.src = document.getElementById('lg').src;
             document.getElementById('sw-nh').innerText = currentHomeFull;
             document.getElementById('sw-ng').innerText = currentGuestFull;
             document.getElementById('sw-text').innerText = pFull[pIdx];
@@ -625,9 +587,8 @@
             if (running && time > 0) { time--; updateUI(); }
         }, 1000);
 
-        // Caricamento iniziale dei loghi per CASA e OSPITI
-        loadLogoSmart(document.getElementById('lh'), 'CASA');
-        loadLogoSmart(document.getElementById('lg'), 'OSPITI');
+        loadLogoDirect(document.getElementById('lh'), 'CASA');
+        loadLogoDirect(document.getElementById('lg'), 'OSPITI');
 
         updateUI();
     </script>
