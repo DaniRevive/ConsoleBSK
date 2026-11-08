@@ -333,62 +333,74 @@
         }
 
         // CARICAMENTO DIRETTO ROBUSTO CON FALLBACK IN SEQUENZA
+        
         function loadLogoDirect(imgEl, nameRaw) {
             if (!imgEl) return;
-            if (!nameRaw) {
+            if (!nameRaw || !nameRaw.trim()) {
+                imgEl.style.display = 'none';
                 imgEl.src = '';
                 return;
             }
+            
             const name = nameRaw.trim();
-            if (!name) {
-                imgEl.src = '';
-                return;
-            }
-
-            const formats = [
-                name + '.png',
-                name.toUpperCase() + '.png',
-                name.toLowerCase() + '.png',
-                name + '.jpg',
-                name.toUpperCase() + '.jpg',
-                name.toLowerCase() + '.jpg',
-                name + '.jpeg',
-                name + '.webp'
+            const candidates = [
+                'loghi/' + name + '.png',
+                'loghi/' + name.toUpperCase() + '.png',
+                'loghi/' + name.toLowerCase() + '.png',
+                'loghi/' + name + '.jpg',
+                'loghi/' + name.toUpperCase() + '.jpg',
+                'loghi/' + name.toLowerCase() + '.jpg',
+                'loghi/' + name + '.PNG',
+                'loghi/' + name + '.JPG',
+                'loghi/' + name + '.webp'
             ];
 
-            let index = 0;
-            imgEl.onerror = function() {
-                index++;
-                if (index < formats.length) {
-                    imgEl.src = logoPath + formats[index];
-                } else {
-                    imgEl.src = ''; // Nessuna immagine trovata, nasconde l'elemento
+            let idx = 0;
+            function tryNext() {
+                if (idx >= candidates.length) {
+                    imgEl.style.display = 'none';
+                    imgEl.src = '';
+                    return;
                 }
-            };
-            imgEl.src = logoPath + formats[index];
+                const testImg = new Image();
+                const path = candidates[idx++];
+                testImg.onload = function() {
+                    imgEl.src = path;
+                    imgEl.style.display = 'inline-block';
+                };
+                testImg.onerror = tryNext;
+                testImg.src = path;
+            }
+            tryNext();
         }
 
-        // CARICAMENTO SPONSOR DIRETTO (1.png, 2.png...)
         function loadSponsorDirect(imgEl, indexNum) {
             if (!imgEl) return;
-            const formats = [
-                indexNum + '.png',
-                indexNum + '.jpg',
-                indexNum + '.jpeg',
-                indexNum + '.webp',
-                'sponsor' + indexNum + '.png'
+            const candidates = [
+                'loghi/' + indexNum + '.png',
+                'loghi/' + indexNum + '.jpg',
+                'loghi/' + indexNum + '.jpeg',
+                'loghi/' + indexNum + '.webp',
+                'loghi/sponsor' + indexNum + '.png'
             ];
 
-            let index = 0;
-            imgEl.onerror = function() {
-                index++;
-                if (index < formats.length) {
-                    imgEl.src = logoPath + formats[index];
-                } else {
+            let idx = 0;
+            function tryNextSponsor() {
+                if (idx >= candidates.length) {
+                    imgEl.style.display = 'none';
                     imgEl.src = '';
+                    return;
                 }
-            };
-            imgEl.src = logoPath + formats[index];
+                const testImg = new Image();
+                const path = candidates[idx++];
+                testImg.onload = function() {
+                    imgEl.src = path;
+                    imgEl.style.display = 'block';
+                };
+                testImg.onerror = tryNextSponsor;
+                testImg.src = path;
+            }
+            tryNextSponsor();
         }
 
         function handleCommand(msg) {
