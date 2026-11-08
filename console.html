@@ -229,6 +229,9 @@
         let timeVisible = true;
         let activeConn = null;
 
+        // Canale locale immediato senza bisogno di server WebRTC!
+        const broadcastChannel = new BroadcastChannel('basket_overlay_channel');
+
         const peerOptions = {
             config: {
                 iceServers: [
@@ -245,24 +248,28 @@
             if (!targetId) return;
             
             if (activeConn) {
-                activeConn.close();
+                try { activeConn.close(); } catch(e){}
             }
 
             activeConn = peer.connect(targetId);
             
             activeConn.on('open', () => {
                 document.getElementById('dot').classList.add('online');
-                console.log("Connesso all'overlay OBS!");
+                console.log("Connesso all'overlay OBS via PeerJS!");
             });
 
             activeConn.on('error', (err) => {
-                console.error("Errore di connessione:", err);
+                console.error("Errore PeerJS:", err);
                 document.getElementById('dot').classList.remove('online');
             });
         }
 
-        // Connessione automatica all'avvio con l'ID preimpostato
-        setTimeout(connectToOverlay, 1000);
+        // Auto-riconnessione automatica ogni 3 secondi se disconnesso
+        setInterval(() => {
+            if (!activeConn || !activeConn.open) {
+                connectToOverlay();
+            }
+        }, 3000);
 
         function toggleTimeVisibility() {
             timeVisible = !timeVisible;
@@ -280,10 +287,18 @@
         function sendCmd(cmd) {
             const data = { cmd: cmd };
             
+            // 1. Invio via PeerJS per OBS remoto
             if (activeConn && activeConn.open) {
                 activeConn.send(data);
             }
             
+            // 2. Invio via BroadcastChannel per schede nello stesso browser
+            broadcastChannel.postMessage(data);
+
+            // 3. Invio via LocalStorage (funziona con OBS Browser Source sullo stesso PC)
+            localStorage.setItem('basket_cmd', cmd + '|' + Date.now());
+
+            // 4. Invio diretto all'iframe dell'anteprima in basso
             const iframe = document.getElementById('preview-iframe');
             if (iframe && iframe.contentWindow && iframe.contentWindow.handleCommand) {
                 iframe.contentWindow.handleCommand(cmd);

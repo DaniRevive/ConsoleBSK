@@ -86,7 +86,6 @@
         .team-box-home-inner { transform: skewX(15deg); display: flex; align-items: center; gap: 16px; }
         .team-name-h { font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #ffffff; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
         
-        /* Gestione pulita visibilità immagini: nasconde qualsiasi tag img senza sorgente valida */
         img { display: none; }
         img.loaded { display: block !important; }
         
@@ -245,7 +244,7 @@
             <div class="team-box-home" id="team-box-home-el">
                 <div id="bonus-lbl-home" class="bonus-badge-home">BONUS</div>
                 <div class="team-box-home-inner">
-                    <span id="nh" class="team-name-h">ADAMAS</span>
+                    <span id="nh" class="team-name-h">CASA</span>
                     <img id="lh" class="team-logo-h">
                 </div>
             </div>
@@ -260,7 +259,7 @@
                 <div id="bonus-lbl-guest" class="bonus-badge-guest">BONUS</div>
                 <div class="team-box-guest-inner">
                     <img id="lg" class="team-logo-g">
-                    <span id="ng" class="team-name-g">NBT</span>
+                    <span id="ng" class="team-name-g">OSPITI</span>
                 </div>
             </div>
 
@@ -277,7 +276,7 @@
         
         let sH = 0, sG = 0, fH = 0, fG = 0, time = 600, running = false, pIdx = 0;
         let lastBonusStateH = false, lastBonusStateG = false;
-        let currentHomeFull = "ADAMAS", currentGuestFull = "NBT"; 
+        let currentHomeFull = "CASA", currentGuestFull = "OSPITI"; 
         const periods = ["1°", "2°", "3°", "4°", "OT"], pFull = ["1° QUARTO", "2° QUARTO", "3° QUARTO", "4° QUARTO", "OVERTIME"];
 
         let adsRotationInterval = null;
@@ -288,6 +287,22 @@
         let timerThreeH = null;
         let timerThreeG = null;
         let scoreboardVisible = true;
+
+        // BroadcastChannel locale per ricezione istantanea senza server
+        const broadcastChannel = new BroadcastChannel('basket_overlay_channel');
+        broadcastChannel.onmessage = (event) => {
+            if (event.data && event.data.cmd) {
+                handleCommand(event.data.cmd);
+            }
+        };
+
+        // LocalStorage fallback (per OBS Browser Source sullo stesso PC)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'basket_cmd' && e.newValue) {
+                const parts = e.newValue.split('|');
+                handleCommand(parts.slice(0, -1).join('|'));
+            }
+        });
 
         const peerOptions = {
             config: {
@@ -323,11 +338,9 @@
             return cleanName.toUpperCase();
         }
 
-        // CARICAMENTO INVISIBILE IN MEMORIA (Nessun riquadro di errore mostrato a schermo)
+        // CARICAMENTO SQUADRE INVISIBILE
         function loadLogoSmart(imgEl, nameRaw) {
             if (!imgEl) return;
-
-            // Di base nascondiamo l'immagine finché non siamo certi che esista
             imgEl.classList.remove('loaded');
             imgEl.src = '';
 
@@ -335,7 +348,6 @@
             const name = nameRaw.trim();
             if (!name) return;
 
-            // Prova tutti i formati possibili (ADAMAS.png, adamas.png, ADAMAS.jpg, 1.png, 1.jpg, ecc.)
             const formats = [
                 name.toUpperCase() + '.png',
                 name.toLowerCase() + '.png',
@@ -346,16 +358,13 @@
                 name.toUpperCase() + '.jpeg',
                 name.toLowerCase() + '.jpeg',
                 name.toUpperCase() + '.webp',
-                name.toLowerCase() + '.webp',
-                'sponsor' + name + '.png',
-                'sponsor' + name + '.jpg'
+                name.toLowerCase() + '.webp'
             ];
 
             let attemptIndex = 0;
 
             function testNextCandidate() {
                 if (attemptIndex >= formats.length) {
-                    // Nessun file immagine presente nel server
                     imgEl.classList.remove('loaded');
                     imgEl.src = '';
                     return;
@@ -364,21 +373,59 @@
                 const candidatePath = logoPath + formats[attemptIndex];
                 attemptIndex++;
 
-                // Creiamo un oggetto Image in memoria non visibile nella pagina web
                 const tempImage = new Image();
                 tempImage.onload = function() {
-                    // L'immagine esiste ed è stata caricata correttamente in memoria!
                     imgEl.src = candidatePath;
                     imgEl.classList.add('loaded');
                 };
                 tempImage.onerror = function() {
-                    // File non trovato, proviamo l'estensione/formato successivo
                     testNextCandidate();
                 };
                 tempImage.src = candidatePath;
             }
 
             testNextCandidate();
+        }
+
+        // CARICAMENTO SPONSOR DEDICATO (1.png, 1.jpg, 2.png, ecc.)
+        function loadSponsorSmart(imgEl, index) {
+            if (!imgEl) return;
+            imgEl.classList.remove('loaded');
+            imgEl.src = '';
+
+            const formats = [
+                index + '.png',
+                index + '.jpg',
+                index + '.jpeg',
+                index + '.webp',
+                'sponsor' + index + '.png',
+                'sponsor' + index + '.jpg'
+            ];
+
+            let attemptIndex = 0;
+
+            function testNextSponsor() {
+                if (attemptIndex >= formats.length) {
+                    imgEl.classList.remove('loaded');
+                    imgEl.src = '';
+                    return;
+                }
+
+                const candidatePath = logoPath + formats[attemptIndex];
+                attemptIndex++;
+
+                const tempImage = new Image();
+                tempImage.onload = function() {
+                    imgEl.src = candidatePath;
+                    imgEl.classList.add('loaded');
+                };
+                tempImage.onerror = function() {
+                    testNextSponsor();
+                };
+                tempImage.src = candidatePath;
+            }
+
+            testNextSponsor();
         }
 
         function handleCommand(msg) {
@@ -488,7 +535,7 @@
         function showAndRotateAd() {
             const adContainer = document.getElementById('ad-graphic-container');
             const adImage = document.getElementById('ad-image-display');
-            loadLogoSmart(adImage, currentAdIndex.toString());
+            loadSponsorSmart(adImage, currentAdIndex);
             adContainer.classList.add('active');
             currentAdIndex = (currentAdIndex % totalAds) + 1;
         }
@@ -578,9 +625,9 @@
             if (running && time > 0) { time--; updateUI(); }
         }, 1000);
 
-        // Caricamento iniziale in memoria
-        loadLogoSmart(document.getElementById('lh'), 'ADAMAS');
-        loadLogoSmart(document.getElementById('lg'), 'NBT');
+        // Caricamento iniziale dei loghi per CASA e OSPITI
+        loadLogoSmart(document.getElementById('lh'), 'CASA');
+        loadLogoSmart(document.getElementById('lg'), 'OSPITI');
 
         updateUI();
     </script>
