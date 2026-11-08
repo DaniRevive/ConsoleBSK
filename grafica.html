@@ -86,9 +86,9 @@
         .team-box-home-inner { transform: skewX(15deg); display: flex; align-items: center; gap: 16px; }
         .team-name-h { font-size: 24px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #ffffff; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
         
-        /* Nasconde le immagini non caricate per evitare l'icona di errore */
+        /* Gestione pulita visibilità immagini: nasconde qualsiasi tag img senza sorgente valida */
         img { display: none; }
-        img[src]:not([src=""]) { display: block; }
+        img.loaded { display: block !important; }
         
         .team-logo-h { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); }
 
@@ -323,52 +323,62 @@
             return cleanName.toUpperCase();
         }
 
-        // Sistema intelligente per provare le varie varianti di estensione e nome file
+        // CARICAMENTO INVISIBILE IN MEMORIA (Nessun riquadro di errore mostrato a schermo)
         function loadLogoSmart(imgEl, nameRaw) {
-            if (!imgEl || !nameRaw) return;
-            const name = nameRaw.trim();
-            if (!name) {
-                imgEl.removeAttribute('src');
-                imgEl.style.display = 'none';
-                return;
-            }
+            if (!imgEl) return;
 
-            // Lista di opzioni da provare in sequenza per il nome del file
+            // Di base nascondiamo l'immagine finché non siamo certi che esista
+            imgEl.classList.remove('loaded');
+            imgEl.src = '';
+
+            if (!nameRaw) return;
+            const name = nameRaw.trim();
+            if (!name) return;
+
+            // Prova tutti i formati possibili (ADAMAS.png, adamas.png, ADAMAS.jpg, 1.png, 1.jpg, ecc.)
             const formats = [
                 name.toUpperCase() + '.png',
                 name.toLowerCase() + '.png',
                 name + '.png',
-                name.toUpperCase() + '.PNG',
                 name.toUpperCase() + '.jpg',
                 name.toLowerCase() + '.jpg',
+                name + '.jpg',
                 name.toUpperCase() + '.jpeg',
                 name.toLowerCase() + '.jpeg',
                 name.toUpperCase() + '.webp',
                 name.toLowerCase() + '.webp',
-                'DEFAULT.png',
-                'default.png'
+                'sponsor' + name + '.png',
+                'sponsor' + name + '.jpg'
             ];
 
             let attemptIndex = 0;
 
-            function tryNext() {
-                if (attemptIndex < formats.length) {
-                    const currentSrc = logoPath + formats[attemptIndex];
-                    attemptIndex++;
-                    imgEl.src = currentSrc;
-                } else {
-                    // Nessun file immagine trovato tra le estensioni provate
-                    imgEl.onerror = null;
-                    imgEl.removeAttribute('src');
-                    imgEl.style.display = 'none';
+            function testNextCandidate() {
+                if (attemptIndex >= formats.length) {
+                    // Nessun file immagine presente nel server
+                    imgEl.classList.remove('loaded');
+                    imgEl.src = '';
+                    return;
                 }
+
+                const candidatePath = logoPath + formats[attemptIndex];
+                attemptIndex++;
+
+                // Creiamo un oggetto Image in memoria non visibile nella pagina web
+                const tempImage = new Image();
+                tempImage.onload = function() {
+                    // L'immagine esiste ed è stata caricata correttamente in memoria!
+                    imgEl.src = candidatePath;
+                    imgEl.classList.add('loaded');
+                };
+                tempImage.onerror = function() {
+                    // File non trovato, proviamo l'estensione/formato successivo
+                    testNextCandidate();
+                };
+                tempImage.src = candidatePath;
             }
 
-            imgEl.onerror = tryNext;
-            imgEl.onload = function() {
-                imgEl.style.display = 'block';
-            };
-            tryNext();
+            testNextCandidate();
         }
 
         function handleCommand(msg) {
@@ -489,16 +499,16 @@
             if (id === 'gate-start') {
                 const stLh = document.getElementById('st-lh');
                 const stLg = document.getElementById('st-lg');
-                if (lh) { stLh.src = lh; stLh.style.display = 'block'; } else stLh.style.display = 'none';
-                if (lg) { stLg.src = lg; stLg.style.display = 'block'; } else stLg.style.display = 'none';
+                if (lh) { stLh.src = lh; stLh.classList.add('loaded'); } else stLh.classList.remove('loaded');
+                if (lg) { stLg.src = lg; stLg.classList.add('loaded'); } else stLg.classList.remove('loaded');
                 document.getElementById('st-nh').innerText = currentHomeFull; 
                 document.getElementById('st-ng').innerText = currentGuestFull;
             }
             if (result) {
                 const enLh = document.getElementById('en-lh');
                 const enLg = document.getElementById('en-lg');
-                if (lh) { enLh.src = lh; enLh.style.display = 'block'; } else enLh.style.display = 'none';
-                if (lg) { enLg.src = lg; enLg.style.display = 'block'; } else enLg.style.display = 'none';
+                if (lh) { enLh.src = lh; enLh.classList.add('loaded'); } else enLh.classList.remove('loaded');
+                if (lg) { enLg.src = lg; enLg.classList.add('loaded'); } else enLg.classList.remove('loaded');
                 document.getElementById('en-nh').innerText = currentHomeFull; 
                 document.getElementById('en-ng').innerText = currentGuestFull;
                 document.getElementById('en-sh').innerText = sH; document.getElementById('en-sg').innerText = sG;
@@ -511,8 +521,8 @@
             const swLg = document.getElementById('sw-lg');
             const lh = document.getElementById('lh').src;
             const lg = document.getElementById('lg').src;
-            if (lh) { swLh.src = lh; swLh.style.display = 'block'; } else swLh.style.display = 'none';
-            if (lg) { swLg.src = lg; swLg.style.display = 'block'; } else swLg.style.display = 'none';
+            if (lh) { swLh.src = lh; swLh.classList.add('loaded'); } else swLh.classList.remove('loaded');
+            if (lg) { swLg.src = lg; swLg.classList.add('loaded'); } else swLg.classList.remove('loaded');
             document.getElementById('sw-nh').innerText = currentHomeFull;
             document.getElementById('sw-ng').innerText = currentGuestFull;
             document.getElementById('sw-text').innerText = pFull[pIdx];
@@ -568,7 +578,7 @@
             if (running && time > 0) { time--; updateUI(); }
         }, 1000);
 
-        // Caricamento iniziale dei loghi per ADAMAS e NBT
+        // Caricamento iniziale in memoria
         loadLogoSmart(document.getElementById('lh'), 'ADAMAS');
         loadLogoSmart(document.getElementById('lg'), 'NBT');
 
