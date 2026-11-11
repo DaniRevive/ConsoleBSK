@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Console di Controllo Basket PRO - Rotazione ADV</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #111827;
+            --border-color: #1f2937;
+            --accent-home: #6366f1;
+            --accent-guest: #d946ef;
+            --accent-gold: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0; padding: 15px; background-color: var(--bg-main);
+            font-family: 'Montserrat', sans-serif; color: var(--text-main);
+            display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 10px 20px; border-radius: 10px;
+            border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        header h1 { margin: 0; font-size: 18px; font-weight: 900; color: var(--accent-gold); letter-spacing: 1px; }
+
+        .top-dashboard {
+            display: grid; grid-template-columns: 1fr 1fr 340px; gap: 15px;
+        }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 15px; display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .card-title {
+            font-size: 12px; font-weight: 900; text-transform: uppercase; color: var(--text-muted);
+            letter-spacing: 1px; border-bottom: 2px solid var(--border-color); padding-bottom: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .team-config-row { display: flex; flex-direction: column; gap: 4px; }
+        .team-config-row label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .team-input-group { display: flex; gap: 6px; }
+        .team-input-group input {
+            flex: 1; background: #030712; border: 1px solid var(--border-color);
+            color: #fff; padding: 6px 10px; border-radius: 5px; font-family: 'Montserrat', sans-serif;
+            font-weight: 700; font-size: 12px; outline: none;
+        }
+        .team-input-group input:focus { border-color: var(--accent-gold); }
+        .btn-apply-team {
+            background: var(--accent-gold); color: #030712; border: none; padding: 4px 10px;
+            border-radius: 5px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 10px;
+        }
+
+        .color-selector-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .btn-color {
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 5px 2px;
+            font-size: 9px; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            transition: transform 0.1s; outline: none;
+        }
+        .btn-color:hover { transform: scale(1.05); }
+
+        .control-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn {
+            background: #1f2937; color: #fff; border: 1px solid rgba(255,255,255,0.08);
+            padding: 7px 10px; border-radius: 5px; font-weight: 900; font-size: 11px; cursor: pointer;
+            transition: all 0.15s ease; text-transform: uppercase; outline: none;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .btn:active { transform: translateY(1px); }
+
+        .btn-home { background: var(--accent-home); }
+        .btn-guest { background: var(--accent-guest); }
+        .btn-danger { background: var(--accent-red); }
+        .btn-warning { background: var(--accent-gold); color: #030712; }
+        .btn-time { background: #3b82f6; }
+
+        .btn-big-timer {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; font-size: 15px; font-weight: 900; padding: 14px 10px;
+            border-radius: 8px; border: none; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            outline: none; transition: all 0.1s ease;
+        }
+        .btn-big-timer:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        .btn-big-timer:active { transform: scale(0.98); }
+
+        .global-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+
+        .selected-banner {
+            font-size: 10px; font-weight: 900; background: #030712; padding: 6px 10px; border-radius: 5px;
+            border-left: 3px solid var(--accent-green); color: #f8fafc; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .upload-section {
+            background: #030712; border: 1px dashed var(--border-color); padding: 8px; border-radius: 6px;
+            display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;
+        }
+        .upload-section label { font-size: 9px; font-weight: 900; color: var(--accent-gold); text-transform: uppercase; }
+        .upload-section input[type="file"] { font-size: 10px; color: var(--text-muted); }
+
+        .bottom-rosters-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+
+        .roster-blocks-container {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #030712; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
+            min-height: 80px;
+        }
+        
+        .player-btn-card {
+            background: #1f2937; border: 1px solid rgba(255,255,255,0.08);
+            padding: 8px; border-radius: 5px; font-weight: 900; cursor: pointer;
+            display: flex; flex-direction: column; gap: 4px; text-transform: uppercase; outline: none;
+        }
+        .player-btn-card:hover { filter: brightness(1.2); }
+        .player-btn-card.active-selected {
+            background: #064e3b !important; border-color: var(--accent-green) !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .player-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 10px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px;
+        }
+        .player-card-name-display { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-card-stats { display: flex; justify-content: space-between; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--accent-gold); }
+
+        .player-action-mini-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 4px;
+        }
+        .mini-btn {
+            background: #334155; border: none; color: white; padding: 3px 0; border-radius: 3px;
+            font-size: 9px; font-weight: 800; cursor: pointer; text-align: center; outline: none;
+        }
+        .mini-btn:hover { filter: brightness(1.3); }
+
+        .pos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
+        .pos-btn { background: #334155; font-size: 9px; padding: 6px 2px; text-align: center; }
+
+        .ads-card {
+            margin-top: 15px; background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 15px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .ads-controls-box {
+            display: flex; gap: 10px; align-items: center; background: #030712; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CONSOLE DI CONTROLLO - STREAMING TV</h1>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-warning" onclick="toggleScoreboardVisibility()">MOSTRA/NASCONDI</button>
+            <button class="btn btn-time" onclick="toggleTimeVisibility()">MOSTRA TEMPO</button>
+            <button class="btn btn-danger" onclick="sendCmd('rf')">AZZERA FALLI TABELLONE</button>
+        </div>
+    </header>
+
+    <div class="top-dashboard">
+        
+        <!-- SQUADRA CASA -->
+        <div class="card" style="border-top: 4px solid var(--accent-home);">
+            <div class="card-title">Squadra Casa <span id="lbl-title-h" style="color:var(--accent-home)">CASA</span></div>
+            <div class="team-config-row">
+                <label>Nome Squadra</label>
+                <div class="team-input-group">
+                    <input type="text" id="input-team-h" value="CASA" placeholder="Nome Squadra">
+                    <button class="btn-apply-team" onclick="updateTeamName('h')">Imposta</button>
+                </div>
+            </div>
+            <div class="team-config-row">
+                <label>Colore Lato Casa</label>
+                <div class="color-selector-row">
+                    <button class="btn-color" style="background:#ffffff; color:#000;" onclick="sendCmd('set_home_color|bianco')">Bianco</button>
+                    <button class="btn-color" style="background:#10b981; color:#000;" onclick="sendCmd('set_home_color|verde')">Verde</button>
+                    <button class="btn-color" style="background:#ff2a5f; color:#fff;" onclick="sendCmd('set_home_color|rosso')">Rosso</button>
+                    <button class="btn-color" style="background:#00f0ff; color:#000;" onclick="sendCmd('set_home_color|blu')">Blu</button>
+                    <button class="btn-color" style="background:#fbbf24; color:#000;" onclick="sendCmd('set_home_color|oro')">Oro</button>
+                </div>
+            </div>
+            <div class="selected-banner" id="banner-sel-h"><span>Attivo:</span> <strong>Nessuno</strong></div>
+            <div class="control-row">
+                <button class="btn btn-home" onclick="applyUniversalAction('h', 1)">+1 Pts</button>
+                <button class="btn btn-home" onclick="applyUniversalAction('h', 2)">+2 Pts</button>
+                <button class="btn btn-home" onclick="applyUniversalAction('h', 3)">+3 Pts</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <button class="btn btn-home" onclick="applyUniversalAction('h', 'foul')">+ Fallo</button>
+                <button class="btn btn-danger" onclick="applyUniversalAction('h', 'foul-sub')">- Fallo</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr; gap: 6px;">
+                <button class="btn" style="background:#1e293b;" onclick="applyUniversalAction('h', -1)">Rimuovi Ultimo Punto (-1)</button>
+            </div>
+        </div>
+
+        <!-- SQUADRA OSPITI -->
+        <div class="card" style="border-top: 4px solid var(--accent-guest);">
+            <div class="card-title">Squadra Ospiti <span id="lbl-title-g" style="color:var(--accent-guest)">OSPITI</span></div>
+            <div class="team-config-row">
+                <label>Nome Squadra</label>
+                <div class="team-input-group">
+                    <input type="text" id="input-team-g" value="OSPITI" placeholder="Nome Squadra">
+                    <button class="btn-apply-team" onclick="updateTeamName('g')">Imposta</button>
+                </div>
+            </div>
+            <div class="team-config-row">
+                <label>Colore Lato Ospiti</label>
+                <div class="color-selector-row">
+                    <button class="btn-color" style="background:#ffffff; color:#000;" onclick="sendCmd('set_guest_color|bianco')">Bianco</button>
+                    <button class="btn-color" style="background:#10b981; color:#000;" onclick="sendCmd('set_guest_color|verde')">Verde</button>
+                    <button class="btn-color" style="background:#ff2a5f; color:#fff;" onclick="sendCmd('set_guest_color|rosso')">Rosso</button>
+                    <button class="btn-color" style="background:#00f0ff; color:#000;" onclick="sendCmd('set_guest_color|blu')">Blu</button>
+                    <button class="btn-color" style="background:#fbbf24; color:#000;" onclick="sendCmd('set_guest_color|oro')">Oro</button>
+                </div>
+            </div>
+            <div class="selected-banner" id="banner-sel-g"><span>Attivo:</span> <strong>Nessuno</strong></div>
+            <div class="control-row">
+                <button class="btn btn-guest" onclick="applyUniversalAction('g', 1)">+1 Pts</button>
+                <button class="btn btn-guest" onclick="applyUniversalAction('g', 2)">+2 Pts</button>
+                <button class="btn btn-guest" onclick="applyUniversalAction('g', 3)">+3 Pts</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <button class="btn btn-guest" onclick="applyUniversalAction('g', 'foul')">+ Fallo</button>
+                <button class="btn btn-danger" onclick="applyUniversalAction('g', 'foul-sub')">- Fallo</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr; gap: 6px;">
+                <button class="btn" style="background:#1e293b;" onclick="applyUniversalAction('g', -1)">Rimuovi Ultimo Punto (-1)</button>
+            </div>
+        </div>
+
+        <!-- TEMPO, QUARTI E SCHERMATE TV -->
+        <div class="card">
+            <div class="card-title">Gestione Gara</div>
+            <!-- PULSANTE DEDICATO [ + ] PER AVVIO/STOP TEMPO -->
+            <button class="btn-big-timer" onclick="sendCmd('toggle')">
+                <span>[ + ]</span> AVVIO / STOP TEMPO <small style="font-size: 10px; opacity: 0.8;"></small>
+            </button>
+            <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+                <button class="btn" style="background:#1e293b;" onclick="sendCmd('reset_time')">RESET 10M</button>
+                <button class="btn btn-warning" onclick="sendCmd('period')">CAMBIO QUARTO</button>
+            </div>
+            <div class="card-title" style="margin-top: 4px;">Schermate TV</div>
+            <div class="global-actions">
+                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_waiting')">In Attesa</button>
+                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_coming_back')">Intervallo (10m)</button>
+                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_start')">Inizio</button>
+                <button class="btn" style="background:#1e293b;" onclick="sendCmd('show_end')">Fine</button>
+            </div>
+            <div style="margin-top: 4px;">
+                <button class="btn btn-danger" style="width:100%; padding:6px; font-size:10px;" onclick="sendCmd('hide_player_card')">CHIUDI FOTO / STATS GIOCATORE</button>
+            </div>
+            <div class="card-title" style="margin-top: 4px;">Posizione Scorebug</div>
+            <div class="pos-grid">
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-left')">SX Alto</button>
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-center')">Centro Alto</button>
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-top-right')">DX Alto</button>
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-left')">SX Basso</button>
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-center')">Centro Basso</button>
+                <button class="btn pos-btn" onclick="sendCmd('set_position|pos-bottom-right')">DX Basso</button>
+            </div>
+            <div style="margin-top:auto;">
+                <button class="btn btn-warning" style="width:100%; padding:8px;" onclick="sendCmd('toggle_roster_graphic')">MOSTRA/CHIUDI ROSTER TV</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ROTAZIONE SPONSOR -->
+    <div class="ads-card">
+        <div class="card-title">Rotazione Automatica Sponsor (Loop Infinito da 1 a 9)</div>
+        <div class="ads-controls-box">
+            <button class="btn btn-warning" style="flex: 2; padding: 12px; font-size: 13px;" onclick="sendCmd('toggle_ads_rotation')">▶ AVVIA / FERMA ROTAZIONE SPONSOR INFINITA</button>
+            <button class="btn btn-danger" style="flex: 1; padding: 12px; font-size: 13px;" onclick="sendCmd('hide_ad')">CHIUDI PUBBLICITÀ</button>
+        </div>
+    </div>
+
+    <div class="bottom-rosters-grid">
+        <!-- ROSTER CASA -->
+        <div class="card">
+            <div class="card-title">
+                Roster Casa 
+                <div>
+                    <button class="btn-apply-team" onclick="resetRosterStats('home')">Reset Stats</button>
+                    <button class="btn-apply-team" onclick="syncRostersToOverlay()">Aggiorna TV</button>
+                </div>
+            </div>
+            <div class="upload-section">
+                <label>Carica Roster Casa Manuale (.json)</label>
+                <input type="file" id="file-upload-home" accept=".json" onchange="importRosterJSON('home', event)">
+            </div>
+            <div class="roster-blocks-container" id="roster-blocks-home">
+                <div style="grid-column: span 2; text-align: center; color: var(--text-muted); font-size: 11px; padding: 15px;">Nessun giocatore in roster. Carica un file JSON.</div>
+            </div>
+        </div>
+
+        <!-- ROSTER OSPITI -->
+        <div class="card">
+            <div class="card-title">
+                Roster Ospiti 
+                <div>
+                    <button class="btn-apply-team" onclick="resetRosterStats('guest')">Reset Stats</button>
+                    <button class="btn-apply-team" onclick="syncRostersToOverlay()">Aggiorna TV</button>
+                </div>
+            </div>
+            <div class="upload-section">
+                <label>Carica Roster Ospiti Manuale (.json)</label>
+                <input type="file" id="file-upload-guest" accept=".json" onchange="importRosterJSON('guest', event)">
+            </div>
+            <div class="roster-blocks-container" id="roster-blocks-guest">
+                <div style="grid-column: span 2; text-align: center; color: var(--text-muted); font-size: 11px; padding: 15px;">Nessun giocatore in roster. Carica un file JSON.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPlayer = { home: null, guest: null }; 
+        let scoreboardVisible = true;
+        let timeVisible = true;
+        
+        let rosterData = {
+            home: [],
+            guest: []
+        };
+
+        function toggleScoreboardVisibility() {
+            scoreboardVisible = !scoreboardVisible;
+            sendCmd(scoreboardVisible ? 'show_score|on' : 'show_score|off');
+        }
+
+        function toggleTimeVisibility() {
+            timeVisible = !timeVisible;
+            sendCmd(timeVisible ? 'show_time|on' : 'show_time|off');
+        }
+
+        /* Gestione globale di tastiera: risponde ai tasti '<', '+' e '=' indipendentemente dal focus del mouse */
+        window.addEventListener('keydown', function(e) {
+            const activeElement = document.activeElement;
+            if ((e.key === '<' || e.key === '>' || e.key === '+' || e.key === '=') && activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault(); 
+                sendCmd('toggle');
+            }
+        }, true);
+
+        async function loadDefaultRosterFiles() {
+            try {
+                const resHome = await fetch('roster_casa.json');
+                if (resHome.ok) {
+                    parseAndApplyRoster('home', await resHome.json());
+                    renderRosterBlocks('home');
+                }
+                
+                const resGuest = await fetch('roster_ospiti.json');
+                if (resGuest.ok) {
+                    parseAndApplyRoster('guest', await resGuest.json());
+                    renderRosterBlocks('guest');
+                }
+
+                syncRostersToOverlay(false);
+            } catch (err) {
+                console.warn("Nessun file JSON predefinito trovato o server locale assente. Roster vuoti.");
+                renderRosterBlocks('home');
+                renderRosterBlocks('guest');
+            }
+        }
+
+        function parseAndApplyRoster(team, data) {
+            if (Array.isArray(data)) {
+                rosterData[team] = data.map((p, idx) => ({
+                    num: p.num !== undefined ? p.num : idx + 1,
+                    name: p.name !== undefined ? p.name : `Giocatore ${idx+1}`,
+                    pts: p.pts !== undefined ? p.pts : 0, 
+                    fl: p.fl !== undefined ? p.fl : 0
+                }));
+            }
+        }
+
+        function sendCmd(cmd) {
+            localStorage.setItem('basket_event', JSON.stringify({ cmd: cmd, t: Date.now() }));
+        }
+
+        function updateTeamName(type) {
+            const val = document.getElementById(`input-team-${type}`).value.trim();
+            document.getElementById(`lbl-title-${type}`).innerText = val.toUpperCase();
+            sendCmd(`${type === 'h' ? 'nh' : 'ng'}|` + val);
+        }
+
+        function showPlayerCardOverlay(team, index) {
+            const player = rosterData[team][index];
+            const teamName = document.getElementById(`input-team-${team === 'home' ? 'h' : 'g'}`).value;
+            const payload = {
+                num: player.num,
+                name: player.name,
+                pts: player.pts,
+                fl: player.fl,
+                teamName: teamName.toUpperCase()
+            };
+            sendCmd(`show_player_card|` + JSON.stringify(payload));
+        }
+
+        function renderRosterBlocks(team) {
+            const container = document.getElementById(`roster-blocks-${team}`);
+            container.innerHTML = '';
+            const teamCode = team === 'home' ? 'h' : 'g';
+
+            if (!rosterData[team] || rosterData[team].length === 0) {
+                container.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); font-size: 11px; padding: 15px;">Nessun giocatore in roster. Carica un file JSON.</div>`;
+                return;
+            }
+
+            rosterData[team].forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `player-btn-card ${selectedPlayer[team] === index ? 'active-selected' : ''}`;
+                card.id = `${team}-card-${index + 1}`;
+                card.innerHTML = `
+                    <div class="player-card-header">
+                        <span>N. <strong style="color:#f59e0b;">${player.num}</strong></span>
+                        <div style="display:flex; gap:4px;">
+                            <button class="mini-btn" style="background:#10b981; padding:2px 6px;" onclick="event.stopPropagation(); showPlayerCardOverlay('${team}', ${index});">👁 FOTO</button>
+                            <button class="mini-btn" style="background:#ef4444; padding:2px 6px;" onclick="event.stopPropagation(); sendCmd('hide_player_card');">✕</button>
+                        </div>
+                    </div>
+                    <div class="player-card-name-display">${player.name || '---'}</div>
+                    <div class="player-card-stats">
+                        <span>PTS: <strong style="color:#fff;">${player.pts}</strong></span>
+                        <span>FALLI: <strong style="color:#ef4444;">${player.fl}</strong></span>
+                    </div>
+                    <div class="player-action-mini-grid" onclick="event.stopPropagation();">
+                        <button class="mini-btn" style="background:#10b981" onclick="modifyDirectPlayer('${team}', ${index}, 'pts', 1, '${teamCode}')">+1</button>
+                        <button class="mini-btn" style="background:#10b981" onclick="modifyDirectPlayer('${team}', ${index}, 'pts', 2, '${teamCode}')">+2</button>
+                        <button class="mini-btn" style="background:#10b981" onclick="modifyDirectPlayer('${team}', ${index}, 'pts', 3, '${teamCode}')">+3</button>
+                        <button class="mini-btn" style="background:#ef4444" onclick="modifyDirectPlayer('${team}', ${index}, 'pts', -1, '${teamCode}')">-1</button>
+                        <button class="mini-btn" style="background:#f59e0b; color:#000;" onclick="modifyDirectPlayer('${team}', ${index}, 'fl', 1, '${teamCode}')">+F</button>
+                        <button class="mini-btn" style="background:#dc2626" onclick="modifyDirectPlayer('${team}', ${index}, 'fl', -1, '${teamCode}')">-F</button>
+                    </div>
+                `;
+                card.onclick = () => { 
+                    selectedPlayer[team] = index; 
+                    renderRosterBlocks(team); 
+                    document.getElementById(`banner-sel-${teamCode}`).innerHTML = `<span>Attivo:</span> <strong style="color:var(--accent-green); font-size:11px;">#${player.num} - ${player.name}</strong>`; 
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function modifyDirectPlayer(team, playerIdx, stat, val, teamCode) {
+            let player = rosterData[team][playerIdx];
+            if (stat === 'pts') {
+                if (val > 0) {
+                    player.pts += val;
+                    sendCmd(`${teamCode}${val}`);
+                } else {
+                    player.pts = Math.max(0, player.pts + val);
+                    sendCmd(`${teamCode}-1`);
+                }
+            } else if (stat === 'fl') {
+                if (val > 0) {
+                    player.fl += val;
+                    sendCmd(`${teamCode}f`);
+                } else {
+                    player.fl = Math.max(0, player.fl + val);
+                    sendCmd(`${teamCode}-f`);
+                }
+            }
+            renderRosterBlocks(team);
+            syncRostersToOverlay(false);
+        }
+
+        function resetRosterStats(team) {
+            if (confirm(`Sei sicuro di voler azzerare i punti e falli del roster ${team.toUpperCase()}?`)) {
+                rosterData[team].forEach(p => { p.pts = 0; p.fl = 0; });
+                renderRosterBlocks(team);
+                syncRostersToOverlay(false);
+            }
+        }
+
+        function importRosterJSON(team, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseAndApplyRoster(team, JSON.parse(e.target.result));
+                    renderRosterBlocks(team);
+                    syncRostersToOverlay(false);
+                    alert(`Roster caricato per ${team.toUpperCase()}!`);
+                } catch (err) { alert("Errore nel file JSON."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function applyUniversalAction(teamCode, actionType) {
+            const teamKey = teamCode === 'h' ? 'home' : 'guest';
+            const selIdx = selectedPlayer[teamKey];
+            
+            if (actionType === 'foul') {
+                sendCmd(`${teamCode}f`);
+                if (selIdx !== null && selIdx !== undefined) rosterData[teamKey][selIdx].fl++;
+            } else if (actionType === 'foul-sub') {
+                sendCmd(`${teamCode}-f`);
+                if (selIdx !== null && selIdx !== undefined) rosterData[teamKey][selIdx].fl = Math.max(0, rosterData[teamKey][selIdx].fl - 1);
+            } else if (actionType === -1) {
+                sendCmd(`${teamCode}-1`);
+                if (selIdx !== null && selIdx !== undefined) rosterData[teamKey][selIdx].pts = Math.max(0, rosterData[teamKey][selIdx].pts - 1);
+            } else {
+                sendCmd(`${teamCode}${actionType}`);
+                if (selIdx !== null && selIdx !== undefined) {
+                    rosterData[teamKey][selIdx].pts += actionType;
+                }
+            }
+
+            renderRosterBlocks(teamKey);
+            syncRostersToOverlay(false);
+        }
+
+        function syncRostersToOverlay(showAlert = true) {
+            localStorage.setItem('basket_rosters', JSON.stringify({ cmd: 'sync_rosters', rosters: rosterData, t: Date.now() }));
+            if (showAlert) alert("Roster sincronizzati con la TV!");
+        }
+
+        window.onload = loadDefaultRosterFiles;
+    </script>
+</body>
+</html>
