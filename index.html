@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlay Console</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Overlay Console UI Container -->
+    <div class="w-full max-w-3xl bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <!-- Console Header -->
+        <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-terminal text-green-500"></i>
+                <span class="text-xs font-mono font-bold">Overlay Console v1.2.0</span>
+            </div>
+            <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded">Connected</span>
+        </div>
+
+        <!-- Terminal Output Area -->
+        <div class="p-6 flex flex-col gap-4">
+            <div id="console-logs" class="bg-black/80 rounded-lg p-4 font-mono text-xs space-y-2 h-64 overflow-y-auto border border-gray-800">
+                <!-- Log items rendered by app.js -->
+            </div>
+
+            <!-- Interactive Buttons -->
+            <div class="flex items-center gap-3">
+                <button id="btn-trigger" class="bg-green-600 hover:bg-green-500 text-white text-xs px-4 py-2 rounded font-medium transition">
+                    Trigger Event
+                </button>
+                <button id="btn-clear" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded font-medium transition border border-gray-700">
+                    Clear Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
