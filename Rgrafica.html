@@ -500,12 +500,16 @@
 
         // 1. SCALING AUTOMATICO DEL PALCO VIRTUALE (Adattamento perfetto a qualsiasi schermo)
         function scaleStage() {
-            const stage = document.getElementById('virtual-stage');
-            const scaleX = window.innerWidth / 1280;
-            const scaleY = window.innerHeight / 720;
-            const scale = Math.min(scaleX, scaleY);
-            stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        }
+    const stage = document.getElementById('virtual-stage');
+
+    // MODIFICA QUESTO VALORE PER CAMBIARE LA GRANDEZZA:
+    // 1.0 = dimensione normale (1280x720)
+    // 0.8 = 80% (più piccolo)
+    // 0.6 = 60% (molto compatto, perfetto per tablet)
+    const customScale = 0.65; 
+
+    stage.style.transform = `translate(-50%, -50%) scale(${customScale})`;
+}
         window.addEventListener('resize', scaleStage);
         scaleStage();
 
