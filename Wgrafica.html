@@ -7,10 +7,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,900;1,900&family=Share+Tech+Mono&display=swap');
         
         :root {
-            --foul-color: #fbbf24;       /* Oro/Ambra vibrante */
-            --accent-cyan: #00f0ff;      /* Ciano elettrico */
-            --accent-emerald: #10b981;   /* Verde moderno */
-            --accent-crimson: #ff2a5f;   /* Rosso/Magenta neon per bonus */
+            --foul-color: #fbbf24;       
+            --accent-cyan: #00f0ff;      
+            --accent-emerald: #10b981;   
+            --accent-crimson: #ff2a5f;   
             --text-main: #ffffff;
             --text-muted: #94a3b8;
             --text-gate-bg: rgba(255, 255, 255, 0.03);
@@ -595,7 +595,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Configurazione Firebase dal tuo pannello
         const firebaseConfig = {
             apiKey: "AIzaSyAxsQHMSVBxtx69bEsvheEDt7sylRxfEQ",
             authDomain: "basket-30626.firebaseapp.com",
@@ -609,7 +608,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Ascolta i comandi di gioco in tempo reale dal cloud
         onValue(ref(db, 'stream_control'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.cmd) {
@@ -617,7 +615,6 @@
             }
         });
 
-        // Ascolta la sincronizzazione dei roster in tempo reale dal cloud
         onValue(ref(db, 'stream_rosters'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.rosters) {
@@ -716,6 +713,13 @@
 
                 img.classList.remove('animate-player');
                 img.src = `${fotoPath}${data.num}${ext}`;
+                
+                // GESTIONE FALLBACK FOTO (Se .PNG maiuscolo non esiste, prova .png minuscolo)
+                img.onerror = function() {
+                    this.onerror = null;
+                    this.src = `${fotoPath}${data.num}.png`;
+                };
+
                 void img.offsetWidth;
                 img.classList.add('animate-player');
 
@@ -825,6 +829,10 @@
                 const imgEl = document.getElementById('lh');
                 imgEl.style.display = 'block';
                 imgEl.src = logoPath + logoFileName + '.png';
+                imgEl.onerror = function() {
+                    this.onerror = null;
+                    this.src = logoPath + logoFileName + '.PNG';
+                };
             }
             if (cmd === 'ng') {
                 const rawName = val;
@@ -837,6 +845,10 @@
                 const imgEl = document.getElementById('lg');
                 imgEl.style.display = 'block';
                 imgEl.src = logoPath + logoFileName + '.png';
+                imgEl.onerror = function() {
+                    this.onerror = null;
+                    this.src = logoPath + logoFileName + '.PNG';
+                };
             }
             updateUI();
         }
@@ -976,18 +988,7 @@
                 lastBonusStateH = false; 
             }
 
-            if (fG >= 5) {
-                bonusGuest.classList.add('active');
-                if (!lastBonusStateG) { 
-                    bonusGuest.classList.remove('bonus-flashing'); 
-                    void bonusGuest.offsetWidth; 
-                    bonusGuest.classList.add('bonus-flashing'); 
-                    lastBonusStateG = true; 
-                }
-            } else { 
-                bonusGuest.classList.remove('bonus-flashing', 'active'); 
-                lastBonusStateG = false; 
-            }
+            fG >= 5 ? bonusGuest.classList.add('active') : bonusGuest.classList.remove('active');
         }
 
         setInterval(() => {
