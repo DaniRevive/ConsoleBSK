@@ -7,7 +7,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:ital,wght@0,400;0,600;0,700;0,900;1,900&family=Share+Tech+Mono&display=swap');
         
         :root {
-            /* PALETTE ISPIRATA AL VIDEO PRE-PARTITA */
             --navy-deep: #0b132b;
             --navy-mid: #132145;
             --adamas-blue: #2359a8;
@@ -49,7 +48,6 @@
         body.pos-top-center .scaler-container { transform-origin: top center; }
         body.pos-top-right .scaler-container { transform-origin: top right; }
 
-        /* --- ANIMAZIONI STILE VIDEO PRE-PARTITA --- */
         @keyframes loading-smooth {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(250%); }
@@ -67,21 +65,18 @@
             100% { color: #ffffff; background-color: var(--adamas-red); box-shadow: 0 0 25px rgba(217, 28, 43, 1), inset 0 0 12px rgba(255, 255, 255, 0.7); transform: scale(1.08); }
         }
 
-        /* Tendina Blu dall'alto (Frame 00:01) */
         @keyframes curtain-wipe-blue {
             0% { transform: translateY(-100%); }
             45% { transform: translateY(0%); }
             100% { transform: translateY(-100%); }
         }
 
-        /* Entrata Titolo Zoom & Pop (Frame 00:02) */
         @keyframes title-smash-in {
             0% { opacity: 0; transform: scale(1.45) translateY(-20px); filter: blur(8px); }
             70% { opacity: 1; transform: scale(0.97) translateY(0); filter: blur(0); }
             100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
-        /* Entrata Barre Inclinate (Frame 00:00 - 00:02) */
         @keyframes ribbon-slide-left {
             0% { opacity: 0; transform: skewX(-22deg) translateX(-140px); }
             100% { opacity: 1; transform: skewX(-22deg) translateX(0); }
@@ -91,7 +86,6 @@
             100% { opacity: 1; transform: skewX(-22deg) translateX(0); }
         }
 
-        /* Entrata Loghi dai Lati (Frame 00:03 - 00:04) */
         @keyframes logo-fly-left {
             0% { opacity: 0; transform: translateX(-280px) scale(0.8); }
             75% { opacity: 1; transform: translateX(15px) scale(1.03); }
@@ -113,7 +107,6 @@
             animation-fill-mode: forwards;
         }
 
-        /* --- SCOREBUG PRINCIPALE (DIMENSIONI ORIGINALI 1920x1080) --- */
         .scorebug-main {
             position: absolute;
             left: var(--bug-left);
@@ -213,7 +206,6 @@
         body.pos-top-center .scorebug-main { left: 50%; top: var(--bug-top); transform: translateX(-50%); }
         body.pos-top-right .scorebug-main { left: auto; right: var(--bug-right); top: var(--bug-top); }
 
-        /* --- ROSTER FULL SCREEN (DIMENSIONI ORIGINALI, COLORI VIDEO) --- */
         #roster-graphic {
             position: fixed; top: 70px; left: 50%; transform: translateX(-50%) perspective(1200px) rotateX(8deg) scale(0.92);
             width: 1450px; max-height: 940px; background: var(--bg-glass-dark); backdrop-filter: blur(16px);
@@ -241,7 +233,6 @@
         .stat-badge strong { color: #ffffff; font-size: 1.1em; margin-left: 4px; }
         .stat-badge.highlight strong { color: var(--adamas-red-bright); }
 
-        /* --- WIDGET GIOCATORE CORNER (DIMENSIONI ORIGINALI) --- */
         @keyframes player-pop-entrance {
             0% { opacity: 0; transform: translateY(65px) scale(0.82); filter: brightness(1.5) drop-shadow(0 0 0 transparent); }
             65% { opacity: 1; transform: translateY(-6px) scale(1.03); filter: brightness(1.1) drop-shadow(0 22px 30px rgba(35, 89, 168, 0.5)); }
@@ -377,7 +368,6 @@
         .corner-stat-label { font-size: 11px; font-weight: 900; color: var(--text-muted); letter-spacing: 1.2px; }
         .corner-stat-val { font-family: 'Share Tech Mono', monospace; font-size: 25px; font-weight: 700; line-height: 1; }
 
-        /* --- SPONSOR ADV CONTAINER (DIMENSIONI ORIGINALI) --- */
         #ad-graphic-container {
             position: fixed; 
             height: 155px; 
@@ -433,15 +423,9 @@
             100% { transform: scale(1); opacity: 1; filter: brightness(1); }
         }
 
-        /* =========================================================================
-           SCHERMATE FULL SCREEN (INIZIO, INTERVALLO, ATTESA, FINALE)
-           Stile fedele al video Pre-Partita: Pattern Diamanti, Fasce Blu/Rosse,
-           Tendina Blu, Titolo stile GAMEDAY e Animazioni Entrata Loghi
-           ========================================================================= */
         .full-screen-gate { 
             position: fixed; inset: 0; 
             background-color: var(--navy-deep);
-            /* Pattern geometrico a diamanti ispirato allo sfondo del video */
             background-image: 
                 radial-gradient(circle at 50% 45%, rgba(35, 89, 168, 0.28) 0%, rgba(11, 19, 43, 0.96) 80%),
                 repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 2px, transparent 2px, transparent 48px),
@@ -452,7 +436,6 @@
         }
         .full-screen-gate.active { opacity: 1; pointer-events: all; }
 
-        /* Tendina blu che scende all'attivazione della schermata */
         .gate-curtain-wipe {
             position: absolute; inset: 0;
             background: var(--adamas-blue);
@@ -464,7 +447,6 @@
             animation: curtain-wipe-blue 0.85s cubic-bezier(0.77, 0, 0.175, 1) forwards;
         }
 
-        /* Fasce decorative diagonali in alto a sinistra (Blu) e in basso a destra (Rosso) come nel video */
         .gate-deco-top-left {
             position: absolute; top: 0; left: -60px; width: 520px; height: 42px;
             background: var(--adamas-blue);
@@ -502,7 +484,6 @@
             position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; 
         }
 
-        /* Titolo principale stile "GAMEDAY" del video (Font condensato alto, bianco con bordo/ombra forte) */
         .gate-title-main { 
             font-family: 'Anton', 'Montserrat', sans-serif;
             font-size: 115px; font-weight: 900; margin: 0 0 18px 0; letter-spacing: 6px; 
@@ -515,7 +496,6 @@
             animation: title-smash-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
         }
 
-        /* Barre info bicolore Rosso/Blu sotto il titolo (come "ROMA - 15 NOV. | ORE 20") */
         .gate-sub-ribbons {
             display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 45px;
         }
@@ -871,18 +851,22 @@
                 const img = document.getElementById('p-corner-img');
                 const container = document.getElementById('player-corner-container');
 
+                container.classList.remove('active');
                 img.classList.remove('animate-player');
-                img.src = `${fotoPath}${data.num}${ext}`;
-                
+                img.src = ''; 
+
+                img.onload = function() {
+                    void img.offsetWidth;
+                    img.classList.add('animate-player');
+                    container.classList.add('active');
+                };
+
                 img.onerror = function() {
                     this.onerror = null;
                     this.src = `${fotoPath}${data.num}.png`;
                 };
 
-                void img.offsetWidth;
-                img.classList.add('animate-player');
-
-                container.classList.add('active');
+                img.src = `${fotoPath}${data.num}${ext}`;
             }
 
             if (cmd === 'hide_player_card') {
