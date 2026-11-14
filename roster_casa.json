@@ -1,14 +1,14 @@
 [
-  { "num": 0, "name": "Matteo Tribuzio", "pts": 0, "fl": 0 },
-  { "num": 8, "name": "Luca Iaboni", "pts": 0, "fl": 0 },
-  { "num": 9, "name": "Jacopo Saltarelli", "pts": 0, "fl": 0 },
-  { "num": 11, "name": "Federico Annarilli", "pts": 0, "fl": 0 },
-  { "num": 20, "name": "Stefano De Francesco", "pts": 0, "fl": 0 },
-  { "num": 21, "name": "Piergiorgio Ceccarelli", "pts": 0, "fl": 0 },
-  { "num": 23, "name": "Loris Sellari", "pts": 0, "fl": 0 },
-  { "num": 24, "name": "Lorenzo Bosco De Giacco", "pts": 0, "fl": 0 },
-  { "num": 30, "name": "Matteo Faraoni", "pts": 0, "fl": 0 },
-  { "num": 33, "name": "Tiziano Giansanti", "pts": 0, "fl": 0 },
-  { "num": 47, "name": "Pierluigi Sergi", "pts": 0, "fl": 0 },
-  { "num": 91, "name": "Leonardo Gustavo Cascarino", "pts": 0, "fl": 0 }
+  { "num": 0, "name": "Tribuzio Matteo", "pts": 0, "fl": 0 },
+  { "num": 3, "name": "Testa Jamal", "pts": 0, "fl": 0 },
+  { "num": 8, "name": "Iaboni Luca", "pts": 0, "fl": 0 },
+  { "num": 9, "name": "Saltarelli Jacopo", "pts": 0, "fl": 0 },
+  { "num": 7, "name": "Annarilli Federico", "pts": 0, "fl": 0 },
+  { "num": 17, "name": "Vitali Filippo", "pts": 0, "fl": 0 },
+  { "num": 21, "name": "Ceccarelli Piergiorgio", "pts": 0, "fl": 0 },
+  { "num": 23, "name": "Sellari Loris", "pts": 0, "fl": 0 },
+  { "num": 25, "name": "Schietroma Cristiano", "pts": 0, "fl": 0 },
+  { "num": 30, "name": "Faraoni Matteo", "pts": 0, "fl": 0 },
+  { "num": 33, "name": "Giansanti Tiziano", "pts": 0, "fl": 0 },
+  { "num": 47, "name": "Sergi Pierluigi", "pts": 0, "fl": 0 }
 ]
