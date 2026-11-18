@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rconsole PRO - Regia Live Basket</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --bg-main: #060911;
+            --bg-card: #111827;
+            --bg-elevated: #1e293b;
+            --border-color: #263245;
+            --accent-home: #6366f1;
+            --accent-guest: #d946ef;
+            --accent-gold: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 0 74px 0;
+            background-color: var(--bg-main);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-main);
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* BARRA SUPERIORE FISSA (CRONOMETRO + QUARTO + TELEMETRIA LOCALE) */
+        .sticky-top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(11, 16, 27, 0.97);
+            backdrop-filter: blur(12px);
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        }
+
+        .top-timer-row {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .btn-master-timer {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 12px 6px;
+            border-radius: 10px;
+            border: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+            transition: transform 0.08s ease, background 0.2s;
+        }
+        .btn-master-timer.running {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35);
+        }
+        .btn-master-timer:active { transform: scale(0.95); }
+
+        .btn-top-sub {
+            background: var(--bg-elevated);
+            color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 11px;
+            padding: 8px 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.1;
+        }
+        .btn-top-sub.gold { background: var(--accent-gold); color: #000; border: none; }
+        .btn-top-sub:active { transform: scale(0.95); }
+
+        /* MINI SCOREBOARD DI RISCONTRO RAPIDO */
+        .mini-scoreboard-strip {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            background: #060911;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .mini-team {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            overflow: hidden;
+        }
+        .mini-team.right { justify-content: flex-end; }
+        .mini-team-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 75px;
+        }
+        .mini-score {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+        }
+        .mini-fouls {
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        .mini-fouls.bonus {
+            background: var(--accent-red);
+            color: #fff;
+            font-weight: 900;
+        }
+        .mini-period-badge {
+            background: var(--bg-elevated);
+            color: var(--accent-gold);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* TOAST FEEDBACK ISTANTANEO */
+        .cmd-toast {
+            position: fixed;
+            top: 98px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: rgba(16, 185, 129, 0.95);
+            color: #030712;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 5px 14px;
+            border-radius: 20px;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .cmd-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* CONTENUTO SCHEDE */
+        .tab-content {
+            display: none;
+            padding: 10px;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tab-content.active { display: flex; }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* SCHEDA 1: LIVE UNIFICATO (PUNTEGGIO RAPIDO + ROSTER IMMEDIATO) */
+        .dual-teams-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .team-column {
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-top: 3px solid var(--border-color);
+        }
+        .team-column.home { border-top-color: var(--accent-home); }
+        .team-column.guest { border-top-color: var(--accent-guest); }
+
+        .team-col-header {
+            font-size: 11px;
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-compact {
+            background: #090d16;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 11px 2px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .btn-compact:active { transform: scale(0.93); filter: brightness(1.25); }
+        .btn-compact.home-bg { background: var(--accent-home); }
+        .btn-compact.guest-bg { background: var(--accent-guest); }
+        .btn-compact.danger-bg { background: var(--accent-red); color: #fff; }
+        .btn-compact.subtle { font-size: 10px; padding: 7px 2px; color: var(--text-muted); }
+
+        .grid-compact-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .grid-compact-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+
+        /* SELETTORE RAPIDO ROSTER NELLA TAB LIVE */
+        .roster-switcher-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            background: #060911;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .roster-switch-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 6px;
+            border-radius: 7px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .roster-switch-btn.active.home {
+            background: var(--accent-home);
+            color: #fff;
+        }
+        .roster-switch-btn.active.guest {
+            background: var(--accent-guest);
+            color: #fff;
+        }
+
+        /* GRIGLIA COMPATTA GIOCATORI (2 COLONNE SU MOBILE PER ZERO SCROLL) */
+        .player-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+
+        .player-grid-btn {
+            background: #090d16;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+        }
+        .player-grid-btn:active { transform: scale(0.96); background: #1e293b; }
+        .player-grid-btn.fouled-out {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        .p-btn-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            width: 100%;
+        }
+        .p-btn-num {
+            background: rgba(245, 158, 11, 0.18);
+            color: var(--accent-gold);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .p-btn-stats {
+            display: flex;
+            gap: 5px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .p-btn-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* PULSANTI GENERICI */
+        .btn {
+            background: var(--bg-elevated);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 11px 8px;
+            border-radius: 9px;
+            font-weight: 900;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-danger { background: var(--accent-red); border: none; }
+        .btn-warning { background: var(--accent-gold); color: #030712; border: none; }
+        .btn-blue { background: var(--accent-blue); border: none; }
+        .btn-green { background: var(--accent-green); color: #030712; border: none; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+        /* MODALE POPUP GIOCATORE */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 999; display: none; align-items: flex-end; justify-content: center;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal-sheet {
+            background: var(--bg-card); width: 100%; max-width: 500px; border-top-left-radius: 22px; border-top-right-radius: 22px; border-top: 3px solid var(--accent-gold); padding: 18px 16px 26px 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .modal-player-name { font-size: 16px; font-weight: 900; text-transform: uppercase; color: #fff; }
+        .modal-player-sub { font-size: 12px; color: var(--accent-gold); font-weight: 800; font-family: 'Share Tech Mono', monospace; }
+        .btn-close-modal { background: #334155; color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 15px; font-weight: 900; cursor: pointer; }
+        .modal-big-btn { padding: 15px 8px; font-size: 14px; border-radius: 10px; }
+
+        /* CONFIG & REGIA */
+        .team-input-group { display: flex; gap: 6px; }
+        .team-input-group input { flex: 1; background: #030712; border: 1px solid var(--border-color); color: #fff; padding: 9px 10px; border-radius: 8px; font-weight: 700; font-size: 13px; outline: none; }
+        .btn-apply-team { background: var(--accent-gold); color: #030712; border: none; padding: 0 12px; border-radius: 8px; font-weight: 900; font-size: 11px; text-transform: uppercase; cursor: pointer; }
+        .color-selector-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .btn-color { border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 9px 2px; font-size: 9px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+        .upload-box { background: #030712; border: 1px dashed var(--border-color); padding: 10px; border-radius: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 6px; }
+        .upload-box input { width: 100%; color: var(--text-muted); font-size: 11px; }
+
+        /* BARRA INFERIORE (3 TAB ESSENZIALI) */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: rgba(11, 16, 27, 0.98); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(3, 1fr); z-index: 200;
+        }
+        .nav-item { background: transparent; border: none; color: var(--text-muted); font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 900; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; }
+        .nav-item.active { color: var(--accent-gold); border-top: 3px solid var(--accent-gold); background: rgba(245, 158, 11, 0.08); }
+    </style>
+</head>
+<body>
+
+    <!-- TOAST DI CONFERMA COMANDO -->
+    <div id="cmd-toast" class="cmd-toast">Comando Inviato</div>
+
+    <!-- BARRA SUPERIORE FISSA -->
+    <div class="sticky-top-bar">
+        <div class="top-timer-row">
+            <button id="btn-master-timer" class="btn-master-timer" onclick="toggleMasterTimer()">▶ AVVIA TEMPO</button>
+            <button class="btn-top-sub gold" onclick="advancePeriod()">
+                <span style="font-size:9px; opacity:0.8;">PERIODO</span>
+                <span id="top-period-lbl">Q1 (+1)</span>
+            </button>
+            <button class="btn-top-sub" onclick="sendCmd('reset_time', 'Reset 10:00')">
+                <span style="font-size:9px; opacity:0.7;">TIMER</span>
+                <span>RESET 10M</span>
+            </button>
+        </div>
+
+        <!-- RIEPILOGO PUNTEGGIO & FALLI SEMPRE VISIBILE -->
+        <div class="mini-scoreboard-strip">
+            <div class="mini-team">
+                <span class="mini-team-name" id="mini-name-h" style="color:var(--accent-home);">CASA</span>
+                <span class="mini-score" id="mini-score-h">0</span>
+                <span class="mini-fouls" id="mini-fouls-h">F:0</span>
+            </div>
+            <div class="mini-period-badge" id="mini-period-badge">Q1</div>
+            <div class="mini-team right">
+                <span class="mini-fouls" id="mini-fouls-g">F:0</span>
+                <span class="mini-score" id="mini-score-g">0</span>
+                <span class="mini-team-name" id="mini-name-g" style="color:var(--accent-guest);">OSPITI</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEDA 1: LIVE PARTITA + ROSTER INTEGRATO (ZERO DISPERSIONE) -->
+    <div id="tab-live" class="tab-content active">
+        
+        <!-- PUNTI E FALLI RAPIDI DI SQUADRA -->
+        <div class="dual-teams-container">
+            <div class="team-column home">
+                <div class="team-col-header" id="lbl-title-h" style="color:var(--accent-home);">CASA</div>
+                <div class="grid-compact-3">
+                    <button class="btn-compact home-bg" onclick="teamScore('h', 1)">+1</button>
+                    <button class="btn-compact home-bg" onclick="teamScore('h', 2)">+2</button>
+                    <button class="btn-compact home-bg" onclick="teamScore('h', 3)">+3</button>
+                </div>
+                <div class="grid-compact-2">
+                    <button class="btn-compact home-bg" onclick="teamFoul('h', 1)">+ Fallo</button>
+                    <button class="btn-compact danger-bg" onclick="teamFoul('h', -1)">- Fallo</button>
+                </div>
+                <button class="btn-compact subtle" onclick="teamScore('h', -1)">-1 Punto</button>
+            </div>
+
+            <div class="team-column guest">
+                <div class="team-col-header" id="lbl-title-g" style="color:var(--accent-guest);">OSPITI</div>
+                <div class="grid-compact-3">
+                    <button class="btn-compact guest-bg" onclick="teamScore('g', 1)">+1</button>
+                    <button class="btn-compact guest-bg" onclick="teamScore('g', 2)">+2</button>
+                    <button class="btn-compact guest-bg" onclick="teamScore('g', 3)">+3</button>
+                </div>
+                <div class="grid-compact-2">
+                    <button class="btn-compact guest-bg" onclick="teamFoul('g', 1)">+ Fallo</button>
+                    <button class="btn-compact danger-bg" onclick="teamFoul('g', -1)">- Fallo</button>
+                </div>
+                <button class="btn-compact subtle" onclick="teamScore('g', -1)">-1 Punto</button>
+            </div>
+        </div>
+
+        <!-- ROSTER GIOCATORI DIRETTAMENTE IN SCHERMATA LIVE -->
+        <div class="card">
+            <div class="card-title">
+                <span>Giocatori (Tocca per Punti/Falli/Foto)</span>
+                <button class="btn-apply-team" style="padding:3px 7px; font-size:9px;" onclick="sendCmd('toggle_roster_graphic', 'Roster TV On/Off')">📺 Roster TV</button>
+            </div>
+
+            <!-- Switcher Istantaneo Casa / Ospiti -->
+            <div class="roster-switcher-bar">
+                <button id="sw-roster-home" class="roster-switch-btn active home" onclick="switchActiveRoster('home')">CASA</button>
+                <button id="sw-roster-guest" class="roster-switch-btn" onclick="switchActiveRoster('guest')">OSPITI</button>
+            </div>
+
+            <div id="live-player-grid" class="player-buttons-grid">
+                <div style="grid-column: span 2; text-align:center; color:var(--text-muted); padding:14px; font-size:11px;">
+                    Nessun roster caricato. Vai in Setup per caricare il JSON.
+                </div>
+            </div>
+        </div>
+
+        <!-- AZIONI RAPIDE DI FINE QUARTO -->
+        <button class="btn btn-danger" style="padding:10px;" onclick="resetTeamFouls()">AZZERA FALLI SQUADRA (NUOVO QUARTO)</button>
+    </div>
+
+    <!-- SCHEDA 2: REGIA TV & GRAFICHE -->
+    <div id="tab-tv" class="tab-content">
+        <div class="card">
+            <div class="card-title">Visibilità Scorebug</div>
+            <div class="grid-2">
+                <button id="btn-vis-score" class="btn btn-warning" onclick="toggleScoreboardVisibility()">👁 SCOREBUG: ON</button>
+                <button id="btn-vis-time" class="btn btn-blue" onclick="toggleTimeVisibility()">⏱ TEMPO: ON</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Schermate TV a Tutto Schermo</div>
+            <div class="grid-2">
+                <button class="btn" onclick="sendCmd('show_waiting', 'Schermata: In Attesa')">⏳ IN ATTESA</button>
+                <button class="btn" onclick="sendCmd('show_coming_back', 'Schermata: Intervallo')">⏸ INTERVALLO (10M)</button>
+                <button class="btn" onclick="sendCmd('show_start', 'Schermata: Inizio')">🏀 INIZIO PARTITA</button>
+                <button class="btn" onclick="sendCmd('show_end', 'Schermata: Finale')">🏁 FINALE</button>
+            </div>
+            <button class="btn btn-danger" onclick="sendCmd('hide_player_card', 'Foto Giocatore Chiusa')">✕ CHIUDI FOTO / CARD GIOCATORE</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Sponsor & Pubblicità</div>
+            <div class="grid-2">
+                <button class="btn btn-warning" onclick="sendCmd('toggle_ads_rotation', 'Rotazione Sponsor')">▶ LOOP SPONSOR</button>
+                <button class="btn btn-danger" onclick="sendCmd('hide_ad', 'Sponsor Nascosto')">✕ CHIUDI SPONSOR</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Posizione Scorebug su Schermo</div>
+            <div class="grid-3">
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-top-left', 'Posizione: SX Alto')">SX Alto</button>
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-top-center', 'Posizione: Centro Alto')">Centro Alto</button>
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-top-right', 'Posizione: DX Alto')">DX Alto</button>
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-bottom-left', 'Posizione: SX Basso')">SX Basso</button>
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-bottom-center', 'Posizione: Centro Basso')">Centro Basso</button>
+                <button class="btn" style="font-size:10px; padding:9px 2px;" onclick="sendCmd('set_position|pos-bottom-right', 'Posizione: DX Basso')">DX Basso</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEDA 3: SETUP SQUADRE & ROSTER -->
+    <div id="tab-setup" class="tab-content">
+        <div class="card">
+            <div class="card-title">Squadra Casa</div>
+            <div class="team-input-group">
+                <input type="text" id="input-team-h" value="CASA" placeholder="Nome Squadra Casa">
+                <button class="btn-apply-team" onclick="updateTeamName('h')">Imposta</button>
+            </div>
+            <div class="color-selector-row">
+                <button class="btn-color" style="background:#ffffff; color:#000;" onclick="sendCmd('set_home_color|bianco', 'Colore Casa: Bianco')">Bianco</button>
+                <button class="btn-color" style="background:#10b981; color:#000;" onclick="sendCmd('set_home_color|verde', 'Colore Casa: Verde')">Verde</button>
+                <button class="btn-color" style="background:#ff2a5f; color:#fff;" onclick="sendCmd('set_home_color|rosso', 'Colore Casa: Rosso')">Rosso</button>
+                <button class="btn-color" style="background:#00f0ff; color:#000;" onclick="sendCmd('set_home_color|blu', 'Colore Casa: Blu')">Blu</button>
+                <button class="btn-color" style="background:#fbbf24; color:#000;" onclick="sendCmd('set_home_color|oro', 'Colore Casa: Oro')">Oro</button>
+            </div>
+            <div class="upload-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>Carica Roster Casa (.json)</strong>
+                    <button class="btn-apply-team" style="background:#334155; color:#fff; padding:4px 8px;" onclick="resetRosterStats('home')">Azzera Stats</button>
+                </div>
+                <input type="file" accept=".json" onchange="importRosterJSON('home', event)">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Squadra Ospiti</div>
+            <div class="team-input-group">
+                <input type="text" id="input-team-g" value="OSPITI" placeholder="Nome Squadra Ospiti">
+                <button class="btn-apply-team" onclick="updateTeamName('g')">Imposta</button>
+            </div>
+            <div class="color-selector-row">
+                <button class="btn-color" style="background:#ffffff; color:#000;" onclick="sendCmd('set_guest_color|bianco', 'Colore Ospiti: Bianco')">Bianco</button>
+                <button class="btn-color" style="background:#10b981; color:#000;" onclick="sendCmd('set_guest_color|verde', 'Colore Ospiti: Verde')">Verde</button>
+                <button class="btn-color" style="background:#ff2a5f; color:#fff;" onclick="sendCmd('set_guest_color|rosso', 'Colore Ospiti: Rosso')">Rosso</button>
+                <button class="btn-color" style="background:#00f0ff; color:#000;" onclick="sendCmd('set_guest_color|blu', 'Colore Ospiti: Blu')">Blu</button>
+                <button class="btn-color" style="background:#fbbf24; color:#000;" onclick="sendCmd('set_guest_color|oro', 'Colore Ospiti: Oro')">Oro</button>
+            </div>
+            <div class="upload-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>Carica Roster Ospiti (.json)</strong>
+                    <button class="btn-apply-team" style="background:#334155; color:#fff; padding:4px 8px;" onclick="resetRosterStats('guest')">Azzera Stats</button>
+                </div>
+                <input type="file" accept=".json" onchange="importRosterJSON('guest', event)">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Manutenzione & Sincronizzazione</div>
+            <div class="grid-2">
+                <button class="btn btn-green" onclick="syncRostersToOverlay(true)">🔄 FORZA SYNC TV</button>
+                <button class="btn btn-danger" onclick="resetFullMatchLocal()">🗑 AZZERA RIEPILOGO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE POPUP GIOCATORE (1 TAP = AZIONE + CHIUSURA AUTOMATICA) -->
+    <div id="player-action-modal" class="modal-backdrop" onclick="closePlayerModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <div id="modal-p-name" class="modal-player-name">#00 GIOCATORE</div>
+                    <div id="modal-p-stats" class="modal-player-sub">PTS: 0 | FALLI: 0</div>
+                </div>
+                <button class="btn-close-modal" onclick="closePlayerModal()">✕</button>
+            </div>
+
+            <div class="grid-3">
+                <button class="btn modal-big-btn" style="background:var(--accent-green); color:#030712;" onclick="executePlayerAction('pts', 1)">+1 PT</button>
+                <button class="btn modal-big-btn" style="background:var(--accent-green); color:#030712;" onclick="executePlayerAction('pts', 2)">+2 PTS</button>
+                <button class="btn modal-big-btn" style="background:var(--accent-green); color:#030712;" onclick="executePlayerAction('pts', 3)">+3 PTS</button>
+            </div>
+
+            <div class="grid-3">
+                <button class="btn btn-warning modal-big-btn" onclick="executePlayerAction('fl', 1)">+ FALLO</button>
+                <button class="btn btn-danger" onclick="executePlayerAction('pts', -1)">-1 PT</button>
+                <button class="btn btn-danger" onclick="executePlayerAction('fl', -1)">- FALLO</button>
+            </div>
+
+            <button class="btn btn-blue modal-big-btn" onclick="executeShowPlayerPhoto()">👁 MOSTRA CARD / FOTO IN TV</button>
+        </div>
+    </div>
+
+    <!-- BARRA INFERIORE A 3 SCHEDE -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('tab-live', this)">
+            <span>🏀 Live</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('tab-tv', this)">
+            <span>📺 Regia TV</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('tab-setup', this)">
+            <span>⚙️ Setup</span>
+        </button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxsQHMSVBxtx69bEsvheEDt7sylRxfEQ",
+            authDomain: "basket-30626.firebaseapp.com",
+            databaseURL: "https://basket-30626-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "basket-30626",
+            storageBucket: "basket-30626.firebasestorage.app",
+            messagingSenderId: "1060504671681",
+            appId: "1:1060504671681:web:66e026850afc70704d8b40"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // STATO LOCALE PER RISCONTRO ISTANTANEO
+        let scoreboardVisible = true;
+        let timeVisible = true;
+        let timerRunning = false;
+        let currentPeriod = 1;
+        let matchStats = {
+            h: { pts: 0, fouls: 0 },
+            g: { pts: 0, fouls: 0 }
+        };
+
+        let rosterData = { home: [], guest: [] };
+        let currentRosterView = 'home';
+        let activeModalTeam = null;
+        let activeModalIndex = null;
+        let toastTimeout = null;
+
+        function showToast(msg) {
+            if (!msg) return;
+            const toast = document.getElementById('cmd-toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            if (navigator.vibrate) navigator.vibrate(25);
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 1100);
+        }
+
+        function updateMiniScoreboard() {
+            document.getElementById('mini-score-h').innerText = matchStats.h.pts;
+            document.getElementById('mini-score-g').innerText = matchStats.g.pts;
+
+            const fElH = document.getElementById('mini-fouls-h');
+            const fElG = document.getElementById('mini-fouls-g');
+            fElH.innerText = `F:${matchStats.h.fouls}`;
+            fElG.innerText = `F:${matchStats.g.fouls}`;
+
+            fElH.classList.toggle('bonus', matchStats.h.fouls >= 5);
+            fElG.classList.toggle('bonus', matchStats.g.fouls >= 5);
+
+            const pLabel = currentPeriod <= 4 ? `Q${currentPeriod}` : `OT${currentPeriod - 4}`;
+            document.getElementById('mini-period-badge').innerText = pLabel;
+            document.getElementById('top-period-lbl').innerText = `${pLabel} (+1)`;
+        }
+
+        window.switchTab = function(tabId, btnEl) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnEl.classList.add('active');
+        }
+
+        window.switchActiveRoster = function(team) {
+            currentRosterView = team;
+            const btnH = document.getElementById('sw-roster-home');
+            const btnG = document.getElementById('sw-roster-guest');
+            btnH.className = `roster-switch-btn ${team === 'home' ? 'active home' : ''}`;
+            btnG.className = `roster-switch-btn ${team === 'guest' ? 'active guest' : ''}`;
+            renderLivePlayerGrid();
+        }
+
+        window.toggleMasterTimer = function() {
+            timerRunning = !timerRunning;
+            const btn = document.getElementById('btn-master-timer');
+            if (timerRunning) {
+                btn.innerText = '⏸ FERMA TEMPO';
+                btn.classList.add('running');
+                sendCmd('toggle', 'Tempo Avviato');
+            } else {
+                btn.innerText = '▶ AVVIA TEMPO';
+                btn.classList.remove('running');
+                sendCmd('toggle', 'Tempo Fermato');
+            }
+        }
+
+        window.advancePeriod = function() {
+            currentPeriod = currentPeriod >= 6 ? 1 : currentPeriod + 1;
+            updateMiniScoreboard();
+            sendCmd('period', `Periodo: ${currentPeriod <= 4 ? 'Q' + currentPeriod : 'OT' + (currentPeriod - 4)}`);
+        }
+
+        window.teamScore = function(teamCode, delta) {
+            matchStats[teamCode].pts = Math.max(0, matchStats[teamCode].pts + delta);
+            updateMiniScoreboard();
+            const label = delta > 0 ? `+${delta} ${teamCode === 'h' ? 'Casa' : 'Ospiti'}` : `-1 ${teamCode === 'h' ? 'Casa' : 'Ospiti'}`;
+            sendCmd(delta > 0 ? `${teamCode}${delta}` : `${teamCode}-1`, label);
+        }
+
+        window.teamFoul = function(teamCode, delta) {
+            matchStats[teamCode].fouls = Math.max(0, matchStats[teamCode].fouls + delta);
+            updateMiniScoreboard();
+            const label = delta > 0 ? `+1 Fallo ${teamCode === 'h' ? 'Casa' : 'Ospiti'}` : `-1 Fallo ${teamCode === 'h' ? 'Casa' : 'Ospiti'}`;
+            sendCmd(delta > 0 ? `${teamCode}f` : `${teamCode}-f`, label);
+        }
+
+        window.resetTeamFouls = function() {
+            matchStats.h.fouls = 0;
+            matchStats.g.fouls = 0;
+            updateMiniScoreboard();
+            sendCmd('rf', 'Falli Squadra Azzerati');
+        }
+
+        window.resetFullMatchLocal = function() {
+            if (!confirm("Azzerare il riepilogo punteggi e falli nella console?")) return;
+            matchStats = { h: { pts: 0, fouls: 0 }, g: { pts: 0, fouls: 0 } };
+            currentPeriod = 1;
+            updateMiniScoreboard();
+            showToast("Riepilogo Azzerato");
+        }
+
+        window.toggleScoreboardVisibility = function() {
+            scoreboardVisible = !scoreboardVisible;
+            document.getElementById('btn-vis-score').innerText = scoreboardVisible ? '👁 SCOREBUG: ON' : '🚫 SCOREBUG: OFF';
+            sendCmd(scoreboardVisible ? 'show_score|on' : 'show_score|off', scoreboardVisible ? 'Scorebug Visibile' : 'Scorebug Nascosto');
+        }
+
+        window.toggleTimeVisibility = function() {
+            timeVisible = !timeVisible;
+            document.getElementById('btn-vis-time').innerText = timeVisible ? '⏱ TEMPO: ON' : '🚫 TEMPO: OFF';
+            sendCmd(timeVisible ? 'show_time|on' : 'show_time|off', timeVisible ? 'Tempo Visibile' : 'Tempo Nascosto');
+        }
+
+        window.sendCmd = function(cmd, feedbackMsg = null) {
+            set(ref(db, 'stream_control'), { cmd: cmd, t: Date.now() });
+            if (feedbackMsg) showToast(feedbackMsg);
+        }
+
+        window.updateTeamName = function(type) {
+            const val = document.getElementById(`input-team-${type}`).value.trim().toUpperCase() || (type === 'h' ? 'CASA' : 'OSPITI');
+            document.getElementById(`lbl-title-${type}`).innerText = val;
+            document.getElementById(`mini-name-${type}`).innerText = val;
+            if (type === 'h') document.getElementById('sw-roster-home').innerText = val;
+            if (type === 'g') document.getElementById('sw-roster-guest').innerText = val;
+            sendCmd(`${type === 'h' ? 'nh' : 'ng'}|` + val, `Nome: ${val}`);
+        }
+
+        async function loadDefaultRosterFiles() {
+            try {
+                const resHome = await fetch('roster_casa.json');
+                if (resHome.ok) parseAndApplyRoster('home', await resHome.json());
+                const resGuest = await fetch('roster_ospiti.json');
+                if (resGuest.ok) parseAndApplyRoster('guest', await resGuest.json());
+                renderLivePlayerGrid();
+                syncRostersToOverlay(false);
+            } catch (err) {
+                renderLivePlayerGrid();
+            }
+        }
+
+        function parseAndApplyRoster(team, data) {
+            if (Array.isArray(data)) {
+                rosterData[team] = data.map((p, idx) => ({
+                    num: p.num !== undefined ? p.num : idx + 1,
+                    name: p.name !== undefined ? p.name : `Giocatore ${idx+1}`,
+                    pts: p.pts !== undefined ? p.pts : 0, 
+                    fl: p.fl !== undefined ? p.fl : 0
+                }));
+            }
+        }
+
+        function renderLivePlayerGrid() {
+            const container = document.getElementById('live-player-grid');
+            container.innerHTML = '';
+            const list = rosterData[currentRosterView];
+
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--text-muted); padding:14px; font-size:11px;">Nessun giocatore in roster ${currentRosterView === 'home' ? 'Casa' : 'Ospiti'}.</div>`;
+                return;
+            }
+
+            list.forEach((player, index) => {
+                const btn = document.createElement('button');
+                btn.className = `player-grid-btn ${player.fl >= 5 ? 'fouled-out' : ''}`;
+                btn.innerHTML = `
+                    <div class="p-btn-top">
+                        <span class="p-btn-num">#${player.num}</span>
+                        <div class="p-btn-stats">
+                            <span style="color:#fff;">P:${player.pts}</span>
+                            <span style="color:${player.fl >= 4 ? 'var(--accent-red)' : 'var(--text-muted)'};">F:${player.fl}</span>
+                        </div>
+                    </div>
+                    <div class="p-btn-name">${player.name}</div>
+                `;
+                btn.onclick = () => openPlayerModal(currentRosterView, index);
+                container.appendChild(btn);
+            });
+        }
+
+        window.openPlayerModal = function(team, index) {
+            activeModalTeam = team;
+            activeModalIndex = index;
+            const player = rosterData[team][index];
+            document.getElementById('modal-p-name').innerText = `#${player.num} ${player.name}`;
+            document.getElementById('modal-p-stats').innerText = `PUNTI: ${player.pts}  |  FALLI: ${player.fl}`;
+            document.getElementById('player-action-modal').classList.add('open');
+        }
+
+        window.closePlayerModal = function() {
+            document.getElementById('player-action-modal').classList.remove('open');
+            activeModalTeam = null;
+            activeModalIndex = null;
+        }
+
+        window.executePlayerAction = function(stat, val) {
+            if (activeModalTeam === null || activeModalIndex === null) return;
+            const teamCode = activeModalTeam === 'home' ? 'h' : 'g';
+            let player = rosterData[activeModalTeam][activeModalIndex];
+
+            if (stat === 'pts') {
+                if (val > 0) {
+                    player.pts += val;
+                    matchStats[teamCode].pts += val;
+                    sendCmd(`${teamCode}${val}`, `#${player.num} +${val} PTS`);
+                } else {
+                    if (player.pts > 0) player.pts -= 1;
+                    matchStats[teamCode].pts = Math.max(0, matchStats[teamCode].pts - 1);
+                    sendCmd(`${teamCode}-1`, `#${player.num} -1 PT`);
+                }
+            } else if (stat === 'fl') {
+                if (val > 0) {
+                    player.fl += val;
+                    matchStats[teamCode].fouls += val;
+                    sendCmd(`${teamCode}f`, `#${player.num} +1 FALLO`);
+                } else {
+                    if (player.fl > 0) player.fl -= 1;
+                    matchStats[teamCode].fouls = Math.max(0, matchStats[teamCode].fouls - 1);
+                    sendCmd(`${teamCode}-f`, `#${player.num} -1 FALLO`);
+                }
+            }
+
+            updateMiniScoreboard();
+            renderLivePlayerGrid();
+            syncRostersToOverlay(false);
+            closePlayerModal();
+        }
+
+        window.executeShowPlayerPhoto = function() {
+            if (activeModalTeam === null || activeModalIndex === null) return;
+            const player = rosterData[activeModalTeam][activeModalIndex];
+            const teamName = document.getElementById(`input-team-${activeModalTeam === 'home' ? 'h' : 'g'}`).value;
+            sendCmd(`show_player_card|` + JSON.stringify({
+                num: player.num,
+                name: player.name,
+                pts: player.pts,
+                fl: player.fl,
+                teamName: teamName.toUpperCase()
+            }), `Card TV: #${player.num} ${player.name}`);
+            closePlayerModal();
+        }
+
+        window.resetRosterStats = function(team) {
+            if (confirm(`Azzerare punti e falli dei giocatori ${team === 'home' ? 'CASA' : 'OSPITI'}?`)) {
+                rosterData[team].forEach(p => { p.pts = 0; p.fl = 0; });
+                renderLivePlayerGrid();
+                syncRostersToOverlay(false);
+                showToast("Stats Roster Azzerate");
+            }
+        }
+
+        window.importRosterJSON = function(team, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseAndApplyRoster(team, JSON.parse(e.target.result));
+                    switchActiveRoster(team);
+                    syncRostersToOverlay(false);
+                    showToast(`Roster ${team === 'home' ? 'Casa' : 'Ospiti'} Caricato!`);
+                } catch (err) {
+                    alert("Errore nel formato del file JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        window.syncRostersToOverlay = function(notify = true) {
+            set(ref(db, 'stream_rosters'), { cmd: 'sync_rosters', rosters: rosterData, t: Date.now() });
+            if (notify) showToast("Roster Sincronizzati TV");
+        }
+
+        // Scorciatoia tastiera per uso ibrido tablet/PC
+        window.addEventListener('keydown', function(e) {
+            const tag = document.activeElement.tagName;
+            if ((e.key === '+' || e.key === '=' || e.key === ' ') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+                e.preventDefault();
+                toggleMasterTimer();
+            }
+        });
+
+        window.onload = () => {
+            updateMiniScoreboard();
+            loadDefaultRosterFiles();
+        };
+    </script>
+</body>
+</html>
